@@ -1,9 +1,13 @@
-all: background
+CFLAGS = -I ./include
+##LIB    = ./lib/fmod/libfmodex64.so
+LFLAGS = -lrt -lX11 -lGLU -lGL -lm #-lXrandr
 
-background: background.cpp
-	g++ background.cpp -Wall -lX11 -lGL -lGLU -lm
+all: rainforest
+
+rainforest: rainforest.cpp log.cpp
+	g++ $(CFLAGS) rainforest.cpp log.cpp libggfonts.a -Wall -Wextra $(LFLAGS) -o rainforest
 
 clean:
-	rm -f background a.out
-
+	rm -f rainforest
+	rm -f *.o
 
