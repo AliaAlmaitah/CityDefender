@@ -148,7 +148,7 @@ public:
 	int showUmbrella;
 	int deflection;
 	//used for Jayden's test mode
-	int showBorder = 0;
+	int showBorder;
 	Global() {
 		logOpen();
 		done=0;
@@ -161,6 +161,7 @@ public:
 		showRain=0;
 		showUmbrella=0;
 		deflection=0;
+		showBorder=0;
 	}
 	~Global() {
 		logClose();
