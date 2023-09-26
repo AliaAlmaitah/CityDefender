@@ -28,6 +28,7 @@
 #include "log.h"
 //#include "ppm.h"
 #include "fonts.h"
+#include "Bestrada.h"
 
 //defined types
 typedef double Flt;
@@ -121,8 +122,8 @@ public:
 	}
 };
 Image img[4] = {
-"./images/bigfoot.png",
-"./images/forest.png",
+"./images/Robot.gif",
+"./images/CityBackground.gif",
 "./images/forestTrans.png",
 "./images/umbrella.png" };
 
@@ -551,6 +552,9 @@ int checkKeys(XEvent *e)
 				bigfoot.pos[0] = -250.0;
 			}
 			break;
+        case XK_R:
+            //Robot testing
+            break;
 		case XK_d:
 			g.deflection ^= 1;
 			break;
