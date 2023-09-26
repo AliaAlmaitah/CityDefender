@@ -1,5 +1,6 @@
-//3350
-//program: rainforest.cpp
+//Team 3 CityDefender group project
+//Changes by: Alia Al-Maitah, Bryan Estrada, Karen Santiago, Jayden Canales
+//Framework: rainforest.cpp
 //author:  Gordon Griesel
 //date:    2013 to 2021
 //
@@ -29,6 +30,9 @@
 //#include "ppm.h"
 #include "fonts.h"
 #include "Bestrada.h"
+#include "jcanales.h"
+
+extern void display_border();
 
 //defined types
 typedef double Flt;
@@ -143,6 +147,8 @@ public:
 	int showRain;
 	int showUmbrella;
 	int deflection;
+	//used for Jayden's test mode
+	int showBorder = 0;
 	Global() {
 		logOpen();
 		done=0;
@@ -618,6 +624,10 @@ int checkKeys(XEvent *e)
 		case XK_Escape:
 			return 1;
 			//break;
+		//JAYDEN'S TEST MODE
+		case XK_j:
+			g.showBorder = !g.showBorder;
+			break;
 	}
 	return 0;
 }
@@ -981,6 +991,9 @@ void render()
 	if (g.showUmbrella)
 		drawUmbrella();
 	glBindTexture(GL_TEXTURE_2D, 0);
+	//JAYDEN ADDED THIS
+	if (g.showBorder)
+		display_border(g.xres, g.yres);
 	//
 	//
 	unsigned int c = 0x00ffff44;
