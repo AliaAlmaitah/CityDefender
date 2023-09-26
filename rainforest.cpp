@@ -33,6 +33,7 @@
 #include "jcanales.h"
 
 extern void display_border();
+extern void Display_Robot();
 
 //defined types
 typedef double Flt;
@@ -141,6 +142,7 @@ public:
 	GLuint forestTransTexture;
 	GLuint umbrellaTexture;
 	int showBigfoot;
+    //used for robot test
     int showRobot;
 	int forest;
 	int silhouette;
@@ -562,7 +564,7 @@ int checkKeys(XEvent *e)
 			}
 			break;
         case XK_Z:
-            //Robot testing
+            //Robot testing key -Bryan
             g.showRobot ^=1;
             break;
 		case XK_d:
@@ -975,8 +977,10 @@ void render()
 		}
 		glDisable(GL_ALPHA_TEST);
 	}
+    //code to show robot in center -Bryan
     if (g.showRobot) {
         Display_Robot(); }
+    //
 
 	glDisable(GL_TEXTURE_2D);
 	//glColor3f(1.0f, 0.0f, 0.0f);

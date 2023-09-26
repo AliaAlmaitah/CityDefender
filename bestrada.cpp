@@ -31,5 +31,5 @@ void Display_Robot() {
     glTexCoord2f(0.0f, 1.0f); glVertex2i( wid,-wid);
     glEnd();
     glPopMatrix();
-    */
+    */ 
 }

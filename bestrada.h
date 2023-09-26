@@ -3,8 +3,6 @@
 
 //Project Files
 
-#include <GL/glx.h>
-
-void Display_Robot();
+extern void Display_Robot();
 
 #endif
