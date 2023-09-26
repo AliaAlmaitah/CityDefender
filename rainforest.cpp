@@ -28,7 +28,7 @@
 #include "log.h"
 //#include "ppm.h"
 #include "fonts.h"
-#include "Bestrada.h"
+#include "bestrada.h"
 
 //defined types
 typedef double Flt;
@@ -137,6 +137,7 @@ public:
 	GLuint forestTransTexture;
 	GLuint umbrellaTexture;
 	int showBigfoot;
+    int showRobot;
 	int forest;
 	int silhouette;
 	int trees;
@@ -149,6 +150,7 @@ public:
 		xres=800;
 		yres=600;
 		showBigfoot=0;
+        showRobot = 0;
 		forest=1;
 		silhouette=1;
 		trees=1;
@@ -552,8 +554,9 @@ int checkKeys(XEvent *e)
 				bigfoot.pos[0] = -250.0;
 			}
 			break;
-        case XK_R:
+        case XK_Z:
             //Robot testing
+            g.showRobot ^=1;
             break;
 		case XK_d:
 			g.deflection ^= 1;
@@ -961,6 +964,8 @@ void render()
 		}
 		glDisable(GL_ALPHA_TEST);
 	}
+    if (g.showRobot) {
+        Display_Robot(); }
 
 	glDisable(GL_TEXTURE_2D);
 	//glColor3f(1.0f, 0.0f, 0.0f);
