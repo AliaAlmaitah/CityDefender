@@ -18,5 +18,7 @@ void display_border(int xres, int yres)
 		glVertex2i(xres-b,   b);
 		glVertex2i(0,   0);
 		glVertex2i(0+b,   0+b);
+    glEnd();
+    glPopMatrix();
 }
 

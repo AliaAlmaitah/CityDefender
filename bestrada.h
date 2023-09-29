@@ -3,6 +3,6 @@
 
 //Project Files
 
-extern void Display_Robot();
+extern void Test_Robot(double * , double * );
 
 #endif

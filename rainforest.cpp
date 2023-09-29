@@ -33,7 +33,7 @@
 #include "jcanales.h"
 
 extern void display_border();
-extern void Display_Robot();
+extern void Test_Robot(double *, double *);
 
 //defined types
 typedef double Flt;
@@ -158,7 +158,7 @@ public:
 		xres=800;
 		yres=600;
 		showBigfoot=0;
-        showRobot = 0;
+        showRobot = 0; //set to 0
 		forest=1;
 		silhouette=1;
 		trees=1;
@@ -563,9 +563,10 @@ int checkKeys(XEvent *e)
 				bigfoot.pos[0] = -250.0;
 			}
 			break;
-        case XK_Z:
+        case XK_z:
             //Robot testing key -Bryan
-            g.showRobot ^=1;
+            g.showRobot = !g.showRobot;
+            Test_Robot(&bigfoot.pos[0], &bigfoot.pos[1]);
             break;
 		case XK_d:
 			g.deflection ^= 1;
@@ -941,8 +942,8 @@ void render()
 		glEnd();
 	}
 	if (g.showBigfoot) {
-		glPushMatrix();
-		glTranslatef(bigfoot.pos[0], bigfoot.pos[1], bigfoot.pos[2]);
+		    glPushMatrix();
+		    glTranslatef(bigfoot.pos[0], bigfoot.pos[1], bigfoot.pos[2]);
 		if (!g.silhouette) {
 			glBindTexture(GL_TEXTURE_2D, g.bigfootTexture);
 		} else {
@@ -978,8 +979,6 @@ void render()
 		glDisable(GL_ALPHA_TEST);
 	}
     //code to show robot in center -Bryan
-    if (g.showRobot) {
-        Display_Robot(); }
     //
 
 	glDisable(GL_TEXTURE_2D);
@@ -1010,7 +1009,7 @@ void render()
 	r.bot = g.yres - 20;
 	r.left = 10;
 	r.center = 0;
-	ggprint8b(&r, 16, c, "B - Bigfoot");
+	ggprint8b(&r, 16, c, "B - Robot");
 	ggprint8b(&r, 16, c, "F - Forest");
 	ggprint8b(&r, 16, c, "S - Silhouette");
 	ggprint8b(&r, 16, c, "T - Trees");
