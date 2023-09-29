@@ -31,6 +31,7 @@
 #include "fonts.h"
 #include "bestrada.h"
 #include "jcanales.h"
+#include "ksantiago.h"
 
 extern void display_border();
 extern void Test_Robot(double *, double *);
@@ -152,6 +153,8 @@ public:
 	int deflection;
 	//used for Jayden's test mode
 	int showBorder;
+    //used for game over screen
+    //int showend;
 	Global() {
 		logOpen();
 		done=0;
@@ -166,6 +169,7 @@ public:
 		showUmbrella=0;
 		deflection=0;
 		showBorder=0;
+        //showend=0;
 	}
 	~Global() {
 		logClose();
@@ -557,6 +561,9 @@ int checkKeys(XEvent *e)
 		return 0;
 	}
 	switch (key) {
+        //case XK_g:
+            //g.showend ^= 1;
+            //break;
 		case XK_b:
 			g.showBigfoot ^= 1;
 			if (g.showBigfoot) {
@@ -980,6 +987,12 @@ void render()
 	}
     //code to show robot in center -Bryan
     //
+
+    //game over screen
+//    if (g.showend) {
+//        display_gameover(g.xres, g.yres);
+//        display_credits(g.xres, g.yres);
+//    }
 
 	glDisable(GL_TEXTURE_2D);
 	//glColor3f(1.0f, 0.0f, 0.0f);
