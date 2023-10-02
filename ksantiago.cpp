@@ -13,7 +13,7 @@ void display_gameover(int xres, int yres)
     r.bot = yres/2;
     r.left = xres/2;
     r.center = 0;
-    ggprint8b(&r, 0, 0x00000000, "Game Over");
+    ggprint8b(&r, 0, 0x00ffffff, "Game Over");
 }
 
 void display_credits(int xres, int yres)
@@ -22,13 +22,13 @@ void display_credits(int xres, int yres)
     r.bot = (yres/2) - 20;
     r.left = (xres/2) - 20;
     r.center = 0;
-    ggprint8b(&r, 0, 0x00000000, "Credits:");
+    ggprint8b(&r, 0, 0x00ffffff, "Credits:");
     r.bot -= 20;
-    ggprint8b(&r, 0, 0x00000000, "Alia Al-Maitah");
+    ggprint8b(&r, 0, 0x00ffffff, "Alia Al-Maitah");
     r.bot -= 20;
-    ggprint8b(&r, 0, 0x00000000, "Jayden Canales");
+    ggprint8b(&r, 0, 0x00ffffff, "Jayden Canales");
     r.bot -= 20;
-    ggprint8b(&r, 0, 0x00000000, "Bryan Estrada");
+    ggprint8b(&r, 0, 0x00ffffff, "Bryan Estrada");
     r.bot -= 20;
     ggprint8b(&r, 0, 0x00000000, "Karen Santiago");
 }
