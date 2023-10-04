@@ -1,3 +1,10 @@
+/*
+ *   Filename: jcanales.cpp
+ *   Purpose: Software Engineering Project source file.
+ *   Author: Jayden Canales
+ *   Created: September 25, 2023
+ *   Last Modified:
+*/
 #include "fonts.h"
 #include <GL/glx.h>
 
