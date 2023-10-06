@@ -11,24 +11,24 @@ void display_gameover(int xres, int yres)
 {
     Rect r;
     r.bot = yres/2;
-    r.left = xres/2;
+    r.left = xres/2 - 125;
     r.center = 0;
-    ggprint8b(&r, 0, 0x00ffffff, "Game Over");
+    ggprint40(&r, 0, 0x00ffffff, "Game Over");
 }
 
 void display_credits(int xres, int yres)
 {
     Rect r;
     r.bot = (yres/2) - 20;
-    r.left = (xres/2) - 20;
+    r.left = (xres/2) - 50;
     r.center = 0;
-    ggprint8b(&r, 0, 0x00ffffff, "Credits:");
+    ggprint16(&r, 0, 0x00ffffff, "Credits:");
     r.bot -= 20;
-    ggprint8b(&r, 0, 0x00ffffff, "Alia Al-Maitah");
+    ggprint12(&r, 0, 0x00ffffff, "Alia Al-Maitah");
     r.bot -= 20;
-    ggprint8b(&r, 0, 0x00ffffff, "Jayden Canales");
+    ggprint12(&r, 0, 0x00ffffff, "Jayden Canales");
     r.bot -= 20;
-    ggprint8b(&r, 0, 0x00ffffff, "Bryan Estrada");
+    ggprint12(&r, 0, 0x00ffffff, "Bryan Estrada");
     r.bot -= 20;
-    ggprint8b(&r, 0, 0x00ffffff, "Karen Santiago");
+    ggprint12(&r, 0, 0x00ffffff, "Karen Santiago");
 }
