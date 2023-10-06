@@ -32,7 +32,7 @@
 #include "bestrada.h"
 #include "jcanales.h"
 
-extern void display_border();
+extern void display_border(int xres, int yres);
 extern void Test_Robot(double *, double *);
 
 //defined types
