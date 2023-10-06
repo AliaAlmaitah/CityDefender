@@ -30,5 +30,5 @@ void display_credits(int xres, int yres)
     r.bot -= 20;
     ggprint8b(&r, 0, 0x00ffffff, "Bryan Estrada");
     r.bot -= 20;
-    ggprint8b(&r, 0, 0x00000000, "Karen Santiago");
+    ggprint8b(&r, 0, 0x00ffffff, "Karen Santiago");
 }
