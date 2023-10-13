@@ -13,7 +13,7 @@ void display_gameover(int xres, int yres)
     r.bot = yres/2;
     r.left = xres/2 - 125;
     r.center = 0;
-    ggprint40(&r, 0, 0x00ffffff, "Game Over");
+    ggprint40(&r, 0, 0x00ff2400, "Game Over");
 }
 
 void display_credits(int xres, int yres)

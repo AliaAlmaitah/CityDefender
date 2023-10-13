@@ -154,7 +154,7 @@ public:
 	//used for Jayden's test mode
 	int showBorder;
     //used for game over screen
-    //int showend;
+    int showend;
 	Global() {
 		logOpen();
 		done=0;
@@ -169,7 +169,7 @@ public:
 		showUmbrella=0;
 		deflection=0;
 		showBorder=0;
-        //showend=0;
+        showend=0;
 	}
 	~Global() {
 		logClose();
@@ -561,9 +561,10 @@ int checkKeys(XEvent *e)
 		return 0;
 	}
 	switch (key) {
-        //case XK_g:
-            //g.showend ^= 1;
-            //break;
+        case XK_g:
+            //Gameover and credits testing key - Karen
+            g.showend ^= 1;
+            break;
 		case XK_b:
 			g.showBigfoot ^= 1;
 			if (g.showBigfoot) {
@@ -989,10 +990,10 @@ void render()
     //
 
     //game over screen
-//    if (g.showend) {
-//        display_gameover(g.xres, g.yres);
-//        display_credits(g.xres, g.yres);
-//    }
+    if (g.showend) {
+        display_gameover(g.xres, g.yres);
+        display_credits(g.xres, g.yres);
+    }
 
 	glDisable(GL_TEXTURE_2D);
 	//glColor3f(1.0f, 0.0f, 0.0f);
@@ -1023,6 +1024,7 @@ void render()
 	r.left = 10;
 	r.center = 0;
 	ggprint8b(&r, 16, c, "B - Robot");
+    ggprint8b(&r, 16, c, "G - Game Over Screen");
 	ggprint8b(&r, 16, c, "F - Forest");
 	ggprint8b(&r, 16, c, "S - Silhouette");
 	ggprint8b(&r, 16, c, "T - Trees");
