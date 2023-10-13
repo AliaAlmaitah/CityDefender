@@ -7,6 +7,17 @@
 
 //function to lock robot in the middle
 void Test_Robot(double *xpos, double *ypos) {
-    *xpos = 400;
+    *xpos = 300;
     *ypos = 300;
+}
+void moveRight(double *xpos, int xres) {
+    //code for spire to move right
+    if(*xpos < xres) {
+        *xpos += 20;
+    }
+}
+void moveLeft(double *xpos) {
+    if(*xpos > 0) {
+        *xpos -= 20;
+    }
 }

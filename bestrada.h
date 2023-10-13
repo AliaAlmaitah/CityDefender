@@ -4,5 +4,8 @@
 //Project Files
 
 extern void Test_Robot(double * , double * );
+extern void moveRight(double *, int );
+extern void moveLeft(double *);
+
 
 #endif
