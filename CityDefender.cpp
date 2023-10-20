@@ -34,6 +34,8 @@
 
 extern void display_border();
 extern void Test_Robot(double *, double *);
+extern void moveRight(double *, int );
+extern void moveLeft(double * );
 
 //defined types
 typedef double Flt;
@@ -569,8 +571,12 @@ int checkKeys(XEvent *e)
             Test_Robot(&bigfoot.pos[0], &bigfoot.pos[1]);
             break;
 		case XK_d:
-			g.deflection ^= 1;
+            moveRight(&bigfoot.pos[0], g.xres);
+		//	g.deflection ^= 1;
 			break;
+        case XK_a:
+            moveLeft(&bigfoot.pos[0]);
+            break;
 		case XK_f:
 			g.forest ^= 1;
 			break;
@@ -941,7 +947,8 @@ void render()
 			glTexCoord2f(1.0f, 1.0f); glVertex2i(g.xres, 0);
 		glEnd();
 	}
-	if (g.showBigfoot) {
+    //added condition to this if
+	if (g.showRobot || g.showBigfoot) {
 		    glPushMatrix();
 		    glTranslatef(bigfoot.pos[0], bigfoot.pos[1], bigfoot.pos[2]);
 		if (!g.silhouette) {
@@ -978,8 +985,6 @@ void render()
 		}
 		glDisable(GL_ALPHA_TEST);
 	}
-    //code to show robot in center -Bryan
-    //
 
 	glDisable(GL_TEXTURE_2D);
 	//glColor3f(1.0f, 0.0f, 0.0f);
