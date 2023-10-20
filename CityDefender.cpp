@@ -337,7 +337,10 @@ int main()
 		//              Break when countdown < physics-rate.
 		//       if no,
 		//           Apply no physics this frame.
-		while (physicsCountdown >= physicsRate) {
+		
+        //bool start = false;
+        //startscreen();
+        while (physicsCountdown >= physicsRate) {
 			//6. Apply physics
 			physics();
 			//7. Reduce the countdown by our physics-rate
