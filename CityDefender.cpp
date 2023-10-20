@@ -31,6 +31,7 @@
 #include "fonts.h"
 #include "bestrada.h"
 #include "jcanales.h"
+#include "ksantiago.h"
 
 extern void display_border(int xres, int yres);
 extern void Test_Robot(double *, double *);
@@ -154,6 +155,8 @@ public:
 	int deflection;
 	//used for Jayden's test mode
 	int showBorder;
+    //used for game over screen
+    int showend;
 	Global() {
 		logOpen();
 		done=0;
@@ -168,6 +171,7 @@ public:
 		showUmbrella=0;
 		deflection=0;
 		showBorder=0;
+        showend=0;
 	}
 	~Global() {
 		logClose();
@@ -335,7 +339,10 @@ int main()
 		//              Break when countdown < physics-rate.
 		//       if no,
 		//           Apply no physics this frame.
-		while (physicsCountdown >= physicsRate) {
+		
+        //bool start = false;
+        //startscreen();
+        while (physicsCountdown >= physicsRate) {
 			//6. Apply physics
 			physics();
 			//7. Reduce the countdown by our physics-rate
@@ -560,6 +567,10 @@ int checkKeys(XEvent *e)
 		return 0;
 	}
 	switch (key) {
+        case XK_g:
+            //Gameover and credits testing key - Karen
+            g.showend ^= 1;
+            break;
 		case XK_b:
 			g.showBigfoot ^= 1;
 			if (g.showBigfoot) {
@@ -987,6 +998,12 @@ void render()
 		glDisable(GL_ALPHA_TEST);
 	}
 
+    //game over screen
+    if (g.showend) {
+        display_gameover(g.xres, g.yres);
+        display_credits(g.xres, g.yres);
+    }
+
 	glDisable(GL_TEXTURE_2D);
 	//glColor3f(1.0f, 0.0f, 0.0f);
 	//glBegin(GL_QUADS);
@@ -1016,6 +1033,7 @@ void render()
 	r.left = 10;
 	r.center = 0;
 	ggprint8b(&r, 16, c, "B - Robot");
+    ggprint8b(&r, 16, c, "G - Game Over Screen");
 	ggprint8b(&r, 16, c, "F - Forest");
 	ggprint8b(&r, 16, c, "S - Silhouette");
 	ggprint8b(&r, 16, c, "T - Trees");
