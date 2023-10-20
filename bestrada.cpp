@@ -13,11 +13,11 @@ void Test_Robot(double *xpos, double *ypos) {
 void moveRight(double *xpos, int xres) {
     //code for spire to move right
     if(*xpos < xres) {
-        *xpos += 10;
+        *xpos += 5;
     }
 }
 void moveLeft(double *xpos) {
     if(*xpos > 0) {
-        *xpos -= 10;
+        *xpos -= 5;
     }
 }
