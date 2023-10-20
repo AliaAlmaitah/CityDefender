@@ -32,7 +32,7 @@
 #include "bestrada.h"
 #include "jcanales.h"
 
-extern void display_border();
+extern void display_border(int xres, int yres);
 extern void Test_Robot(double *, double *);
 extern void moveRight(double *, int );
 extern void moveLeft(double * );
@@ -130,7 +130,7 @@ public:
 };
 Image img[4] = {
 "./images/Robot.gif",
-"./images/CityBackground.gif",
+"./images/CityBackground.png",
 "./images/forestTrans.png",
 "./images/umbrella.png" };
 
@@ -140,13 +140,13 @@ public:
 	int xres, yres;
 	GLuint bigfootTexture;
 	GLuint silhouetteTexture;
-	GLuint forestTexture;
+	GLuint cityTexture;
 	GLuint forestTransTexture;
 	GLuint umbrellaTexture;
 	int showBigfoot;
     //used for robot test
     int showRobot;
-	int forest;
+	int city;
 	int silhouette;
 	int trees;
 	int showRain;
@@ -161,9 +161,9 @@ public:
 		yres=600;
 		showBigfoot=0;
         showRobot = 0; //set to 0
-		forest=1;
-		silhouette=1;
-		trees=1;
+		city=1;
+		silhouette=0;
+		trees=0;
 		showRain=0;
 		showUmbrella=0;
 		deflection=0;
@@ -391,114 +391,115 @@ unsigned char *buildAlphaData(Image *img)
 	}
 	return newdata;
 }
-
 void initOpengl(void)
 {
-	//OpenGL initialization
-	glViewport(0, 0, g.xres, g.yres);
-	//Initialize matrices
-	glMatrixMode(GL_PROJECTION); glLoadIdentity();
-	glMatrixMode(GL_MODELVIEW); glLoadIdentity();
-	//This sets 2D mode (no perspective)
-	glOrtho(0, g.xres, 0, g.yres, -1, 1);
-	//
-	glDisable(GL_LIGHTING);
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_FOG);
-	glDisable(GL_CULL_FACE);
-	//
-	//Clear the screen
-	glClearColor(1.0, 1.0, 1.0, 1.0);
-	//glClear(GL_COLOR_BUFFER_BIT);
-	//Do this to allow fonts
-	glEnable(GL_TEXTURE_2D);
-	initialize_fonts();
-	//
-	//load the images file into a ppm structure.
-	//
-	//bigfootImage     = ppm6GetImage("./images/bigfoot.ppm");
-	//forestImage      = ppm6GetImage("./images/forest.ppm");
-	//forestTransImage = ppm6GetImage("./images/forestTrans.ppm");
-	//umbrellaImage    = ppm6GetImage("./images/umbrella.ppm");
-	//create opengl texture elements
-	glGenTextures(1, &g.bigfootTexture);
-	glGenTextures(1, &g.silhouetteTexture);
-	glGenTextures(1, &g.forestTexture);
-	glGenTextures(1, &g.umbrellaTexture);
-	//-------------------------------------------------------------------------
-	//bigfoot
-	//
-	int w = img[0].width;
-	int h = img[0].height;
-	//
-	glBindTexture(GL_TEXTURE_2D, g.bigfootTexture);
-	//
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, w, h, 0,
-		GL_RGB, GL_UNSIGNED_BYTE, img[0].data);
-	//-------------------------------------------------------------------------
-	//
-	//silhouette
-	//this is similar to a sprite graphic
-	//
-	glBindTexture(GL_TEXTURE_2D, g.silhouetteTexture);
-	//
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-	//
-	//must build a new set of data...
-	unsigned char *silhouetteData = buildAlphaData(&img[0]);	
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
-								GL_RGBA, GL_UNSIGNED_BYTE, silhouetteData);
-	free(silhouetteData);
-	//glTexImage2D(GL_TEXTURE_2D, 0, 3, w, h, 0,
-	//	GL_RGB, GL_UNSIGNED_BYTE, bigfootImage->data);
-	//-------------------------------------------------------------------------
-	//
-	//umbrella
-	//
-	glBindTexture(GL_TEXTURE_2D, g.umbrellaTexture);
-	//
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-	//
-	//must build a new set of data...
-	silhouetteData = buildAlphaData(&img[3]);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
-								GL_RGBA, GL_UNSIGNED_BYTE, silhouetteData);
-	free(silhouetteData);
-	//glTexImage2D(GL_TEXTURE_2D, 0, 3, w, h, 0,
-	//	GL_RGB, GL_UNSIGNED_BYTE, bigfootImage->data);
-	//-------------------------------------------------------------------------
-	//
-	//forest
-	glBindTexture(GL_TEXTURE_2D, g.forestTexture);
-	//
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, img[1].width, img[1].height,
-									0, GL_RGB, GL_UNSIGNED_BYTE, img[1].data);
-	//-------------------------------------------------------------------------
-	//
-	//forest transparent part
-	//
-	glBindTexture(GL_TEXTURE_2D, g.forestTransTexture);
-	//
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-	//
-	//must build a new set of data...
-	w = img[2].width;
-	h = img[2].height;
-	unsigned char *ftData = buildAlphaData(&img[2]);	
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
-											GL_RGBA, GL_UNSIGNED_BYTE, ftData);
-	free(ftData);
-	//glTexImage2D(GL_TEXTURE_2D, 0, 3, w, h, 0,
-	//GL_RGB, GL_UNSIGNED_BYTE, bigfootImage->data);
-	//-------------------------------------------------------------------------
-}
+    //OpenGL initialization
+    glViewport(0, 0, g.xres, g.yres);
+    //Initialize matrices
+    glMatrixMode(GL_PROJECTION); glLoadIdentity();
+    glMatrixMode(GL_MODELVIEW); glLoadIdentity();
+    //This sets 2D mode (no perspective)
+    glOrtho(0, g.xres, 0, g.yres, -1, 1);
+    //
+    glDisable(GL_LIGHTING);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_FOG);
+    glDisable(GL_CULL_FACE);
+    //
+    //Clear the screen
+    glClearColor(1.0, 1.0, 1.0, 1.0);
+    //glClear(GL_COLOR_BUFFER_BIT);
+    //Do this to allow fonts
+    glEnable(GL_TEXTURE_2D);
+    initialize_fonts();
+    //
+    //load the images file into a ppm structure.
+    //
+    //bigfootImage     = ppm6GetImage("./images/bigfoot.ppm");
+    //forestImage      = ppm6GetImage("./images/forest.ppm");
+    //forestTransImage = ppm6GetImage("./images/forestTrans.ppm");
+    //umbrellaImage    = ppm6GetImage("./images/umbrella.ppm");
+    //create opengl texture elements
+    glGenTextures(1, &g.bigfootTexture);
+    glGenTextures(1, &g.silhouetteTexture);
+    glGenTextures(1, &g.cityTexture);
+    glGenTextures(1, &g.umbrellaTexture);
+    //-------------------------------------------------------------------------
+    //bigfoot
+    //
+    int w = img[0].width;
+    int h = img[0].height;
+    //
+    glBindTexture(GL_TEXTURE_2D, g.bigfootTexture);
+    //
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, 3, w, h, 0,
+        GL_RGB, GL_UNSIGNED_BYTE, img[0].data);
+    //-------------------------------------------------------------------------
+    //
+    //silhouette
+    //this is similar to a sprite graphic
+    //
+    glBindTexture(GL_TEXTURE_2D, g.silhouetteTexture);
+    //
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+    //
+    //must build a new set of data...
+    unsigned char *silhouetteData = buildAlphaData(&img[0]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+                                GL_RGBA, GL_UNSIGNED_BYTE, silhouetteData);
+    free(silhouetteData);
+    //glTexImage2D(GL_TEXTURE_2D, 0, 3, w, h, 0,
+    //  GL_RGB, GL_UNSIGNED_BYTE, bigfootImage->data);
+    //-------------------------------------------------------------------------
+    //
+    //umbrella
+    //
+    glBindTexture(GL_TEXTURE_2D, g.umbrellaTexture);
+    //
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+    //
+    //must build a new set of data...
+    silhouetteData = buildAlphaData(&img[3]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+                                GL_RGBA, GL_UNSIGNED_BYTE, silhouetteData);
+    free(silhouetteData);
+    //glTexImage2D(GL_TEXTURE_2D, 0, 3, w, h, 0,
+    //  GL_RGB, GL_UNSIGNED_BYTE, bigfootImage->data);
+    //-------------------------------------------------------------------------
+    //
+    //city
+    glBindTexture(GL_TEXTURE_2D, g.cityTexture);
+    //
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, 3, img[1].width, img[1].height,
+                                    0, GL_RGB, GL_UNSIGNED_BYTE, img[1].data);
+    //-------------------------------------------------------------------------
+    // JAYDEN COMMENTED THIS PART OUT
+    //forest transparent part
+    //
+    /*
+    glBindTexture(GL_TEXTURE_2D, g.forestTransTexture);
+    //
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+    //
+    //must build a new set of data...
+    w = img[2].width;
+    h = img[2].height;
+    unsigned char *ftData = buildAlphaData(&img[2]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+                                            GL_RGBA, GL_UNSIGNED_BYTE, ftData);
+    free(ftData);
+    //glTexImage2D(GL_TEXTURE_2D, 0, 3, w, h, 0,
+    //GL_RGB, GL_UNSIGNED_BYTE, bigfootImage->data);
+    //-------------------------------------------------------------------------
+*/
+    }
 
 void initSounds()
 {
@@ -578,7 +579,7 @@ int checkKeys(XEvent *e)
             moveLeft(&bigfoot.pos[0]);
             break;
 		case XK_f:
-			g.forest ^= 1;
+			g.city ^= 1;
 			break;
 		case XK_s:
 			g.silhouette ^= 1;
@@ -938,8 +939,8 @@ void render()
 	//draw a quad with texture
 	float wid = 120.0f;
 	glColor3f(1.0, 1.0, 1.0);
-	if (g.forest) {
-		glBindTexture(GL_TEXTURE_2D, g.forestTexture);
+	if (g.city) {
+		glBindTexture(GL_TEXTURE_2D, g.cityTexture);
 		glBegin(GL_QUADS);
 			glTexCoord2f(0.0f, 1.0f); glVertex2i(0, 0);
 			glTexCoord2f(0.0f, 0.0f); glVertex2i(0, g.yres);
