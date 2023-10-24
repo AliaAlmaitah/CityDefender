@@ -9,7 +9,6 @@
 
 int total_render_function_calls(const bool get) {
     static int count = 0;
-    //count += render();
     if (get == false) {
         count++;
     }
@@ -44,6 +43,4 @@ void display_credits(int xres, int yres)
     r.bot -= 20;
     ggprint12(&r, 0, 0x00ffffff, "Karen Santiago");
     r.bot -= 20;
-    //ggprint13(&r, 16, 0x00ffff00, "n render calls: %i",
-            //total_render_function_calls(true));
 }
