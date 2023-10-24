@@ -38,6 +38,7 @@ extern void display_hp(float health, int xres, int yres);
 extern void Test_Robot(double *, double *);
 extern void moveRight(double *, int );
 extern void moveLeft(double * );
+extern int total_running_time(const bool get);
 
 //defined types
 typedef double Flt;
@@ -160,6 +161,7 @@ public:
     float health;
     //used for game over screen
     int showend;
+    bool statistics;
 	Global() {
 		logOpen();
 		done=0;
@@ -1052,5 +1054,36 @@ void render()
 //	ggprint8b(&r, 16, c, "R - Rain");
 //	ggprint8b(&r, 16, c, "D - Deflection");
 //	ggprint8b(&r, 16, c, "N - Sounds");
+    if (g.statistics) {
+         glColor3ub(100, 100, 100);
+         glPushMatrix();
+         glTranslatef(20.0, 20.0, 0.0);
+         int w = 230;
+         int h = 130;
+         glBegin(GL_QUADS);
+             glVertex2f(0,0);
+             glVertex2f(0,h);
+             glVertex2f(w,h);
+             glVertex2f(w,0);
+         glEnd();
+         glPopMatrix();
+         r.bot = 124;
+         r.left = 28;
+         r.center = 0;
+         ggprint13(&r, 20, 0x0055ff55, "Statistics...");
+         ggprint13(&r, 16, 0x00ffff00, "sec running time: %i",
+                                             total_running_time(true));
+         ggprint13(&r, 16, 0x00ffff00, "sec since mouse move: %i",
+                                             total_running_time(true));
+         ggprint13(&r, 16, 0x00ffff00, "sec since key press: %i",
+                                             total_running_time(true));
+         ggprint13(&r, 16, 0x00ffff00, "n physics calls: %i",
+                                             total_running_time(true));
+         ggprint13(&r, 16, 0x00ffff00, "n render calls:: %i",
+                                             total_running_time(true));
+         ggprint13(&r, 16, 0x00ffff00, "mouse distance: %i",
+                                             total_running_time(true));
+     }
+
 }
 
