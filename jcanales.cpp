@@ -28,4 +28,25 @@ void display_border(int xres, int yres)
     glEnd();
     glPopMatrix();
 }
-
+void display_hp(float health, int xres, int yres)
+{
+    const float sep = 2.0;
+    const float barWidth = 5.0;
+    glColor3f(1.0f, 0.0f, 0.0f);
+    glPushMatrix();
+    glBegin(GL_QUADS);
+        for (float i = xres-125; i < health + xres-125; i += (sep + barWidth)) {
+            glVertex2f(i, yres-40);
+            glVertex2f(i, yres-20);
+            glVertex2f(i + barWidth, yres-20);
+            glVertex2f(i + barWidth, yres-40);
+        }
+    glEnd();
+    glPopMatrix();
+    //HP words
+    Rect r;
+    r.bot = yres-60;
+    r.left = xres-125;
+    r.center = 0;
+    ggprint08(&r, 0, 0x00ff2400, "HP");
+}

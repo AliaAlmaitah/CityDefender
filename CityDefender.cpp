@@ -34,6 +34,7 @@
 #include "ksantiago.h"
 
 extern void display_border(int xres, int yres);
+extern void display_hp(float health, int xres, int yres);
 extern void Test_Robot(double *, double *);
 extern void moveRight(double *, int );
 extern void moveLeft(double * );
@@ -155,6 +156,8 @@ public:
 	int deflection;
 	//used for Jayden's test mode
 	int showBorder;
+    int showHealth;
+    float health;
     //used for game over screen
     int showend;
 	Global() {
@@ -165,12 +168,16 @@ public:
 		showBigfoot=0;
         showRobot = 0; //set to 0
 		city=1;
-		silhouette=0;
+		silhouette=1;
 		trees=0;
 		showRain=0;
 		showUmbrella=0;
 		deflection=0;
+        //Jayden's changes
 		showBorder=0;
+        showHealth=1;
+        health=100.0;
+        //
         showend=0;
 	}
 	~Global() {
@@ -256,7 +263,7 @@ public:
 	void setTitle() {
 		//Set the window title bar.
 		XMapWindow(dpy, win);
-		XStoreName(dpy, win, "3350 - Animation Template");
+		XStoreName(dpy, win, "City Defender");
 	}
 	void setupScreenRes(const int w, const int h) {
 		g.xres = w;
@@ -1024,8 +1031,12 @@ void render()
 		drawUmbrella();
 	glBindTexture(GL_TEXTURE_2D, 0);
 	//JAYDEN ADDED THIS
-	if (g.showBorder)
+	if (g.showBorder) {
 		display_border(g.xres, g.yres);
+    }
+    if (g.showHealth) {
+        display_hp(g.health, g.xres, g.yres);
+    }
 	//
 	//
 	unsigned int c = 0x00ffff44;
@@ -1034,12 +1045,12 @@ void render()
 	r.center = 0;
 	ggprint8b(&r, 16, c, "B - Robot");
     ggprint8b(&r, 16, c, "G - Game Over Screen");
-	ggprint8b(&r, 16, c, "F - Forest");
-	ggprint8b(&r, 16, c, "S - Silhouette");
-	ggprint8b(&r, 16, c, "T - Trees");
-	ggprint8b(&r, 16, c, "U - Umbrella");
-	ggprint8b(&r, 16, c, "R - Rain");
-	ggprint8b(&r, 16, c, "D - Deflection");
-	ggprint8b(&r, 16, c, "N - Sounds");
+	ggprint8b(&r, 16, c, "Z - Character");
+//	ggprint8b(&r, 16, c, "S - Silhouette");
+//	ggprint8b(&r, 16, c, "T - Trees");
+//	ggprint8b(&r, 16, c, "U - Umbrella");
+//	ggprint8b(&r, 16, c, "R - Rain");
+//	ggprint8b(&r, 16, c, "D - Deflection");
+//	ggprint8b(&r, 16, c, "N - Sounds");
 }
 
