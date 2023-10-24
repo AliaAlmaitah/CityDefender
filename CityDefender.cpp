@@ -951,6 +951,7 @@ void drawRaindrops()
 void render()
 {
 	Rect r;
+    total_render_function_calls(false);
 
 	//Clear the screen
 	glClearColor(1.0, 1.0, 1.0, 1.0);
@@ -1079,8 +1080,8 @@ void render()
                                              total_running_time(true));
          ggprint13(&r, 16, 0x00ffff00, "n physics calls: %i",
                                              total_running_time(true));
-         ggprint13(&r, 16, 0x00ffff00, "n render calls:: %i",
-                                             total_running_time(true));
+         ggprint13(&r, 16, 0x00ffff00, "n render calls: %i",
+                                             total_render_function_calls(true));
          ggprint13(&r, 16, 0x00ffff00, "mouse distance: %i",
                                              total_running_time(true));
      }
