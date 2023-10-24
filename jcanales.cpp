@@ -7,7 +7,7 @@
 */
 #include "fonts.h"
 #include <GL/glx.h>
-
+#include <ctime>
 void display_border(int xres, int yres)
 {
 	//draw a border around the window to indicate your test mode
@@ -49,4 +49,18 @@ void display_hp(float health, int xres, int yres)
     r.left = xres-125;
     r.center = 0;
     ggprint08(&r, 0, 0x00ff2400, "HP");
+}
+int time_since_mouse_moved(const bool get, bool moved)
+{
+    static int start_time;
+    //int time_passed = time(NULL) - start_time;
+    if (moved) {
+        start_time = time(NULL);
+        moved = 0;
+    }
+    if (get) {
+       // return time_passed;
+       return time(NULL) - start_time;
+    }
+    return 0;
 }
