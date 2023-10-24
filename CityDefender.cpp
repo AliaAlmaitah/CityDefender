@@ -320,6 +320,7 @@ int main()
 	init();
 	clock_gettime(CLOCK_REALTIME, &timePause);
 	clock_gettime(CLOCK_REALTIME, &timeStart);
+    total_running_time(false);
 	int done = 0;
 	while (!done) {
 		while (x11.getXPending()) {
@@ -602,8 +603,7 @@ int checkKeys(XEvent *e)
 			g.city ^= 1;
 			break;
 		case XK_s:
-			g.silhouette ^= 1;
-			printf("silhouette: %i\n", g.silhouette);
+            g.statistics = !g.statistics;
 			break;
 		case XK_t:
 			g.trees ^= 1;
