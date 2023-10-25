@@ -7,34 +7,36 @@
  *   Last Modified:
 */
 
+
 #include <ctime>
+
 struct GLData {
     bool statistics = false;
-    
 };
 
 GLData gl;
+
 int time_since_key_press(const bool get) {
-    static int firsttime = 1;
-    static int lastKeyPressTime;
-    if (firsttime) {
+    static int lastKeyPressTime = time(NULL); // Initialize immediately
+
+    if (!get) {
+        // Update the lastKeyPressTime to current time when get is false
         lastKeyPressTime = time(NULL);
-        firsttime = 0;
+        return 0;
     }
-    if (get) {
-        return time(NULL) - lastKeyPressTime;
-    }
-    return 0;
+
+    return time(NULL) - lastKeyPressTime;
 }
 
 void updateKeyPressTime() {
-    time_since_key_press(false); // This resets the timer
+    // Reset the time of the last key press by calling time_since_key_press with get = false
+    time_since_key_press(false);
 }
-/*void keyCallback(unsigned char key, int , int) {
 
+void keyCallback(unsigned char key, int, int) {
     if (key == 'S' || key == 's') {
         gl.statistics = !gl.statistics;
-    } else {
-        updateKeyPressTime(); 
     }
-}*/
+    // Any key press will reset the timer
+    updateKeyPressTime();
+}
