@@ -7,6 +7,7 @@
 extern void display_name(int, int);
 extern void display_border(int xres, int yres);
 extern int time_since_key_press(const bool get);
+extern void handleKeyPressEvent();
 
 //class alia {
  //   int abc;
