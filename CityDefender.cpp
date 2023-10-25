@@ -564,13 +564,17 @@ void checkMouse(XEvent *e)
 		savey = e->xbutton.y;
 	}
 }
-
+void updateKeyPressTime();
 int checkKeys(XEvent *e)
 {
-	//keyboard input?
-	static int shift=0;
-	if (e->type != KeyPress && e->type != KeyRelease)
-		return 0;
+	{
+    //keyboard input?
+    static int shift=0;
+    if (e->type != KeyPress && e->type != KeyRelease)
+        return 0;
+     if (e->type == KeyPress) {
+        updateKeyPressTime();
+    }
 	int key = (XLookupKeysym(&e->xkey, 0) & 0x0000ffff);
 	if (e->type == KeyRelease) {
 		if (key == XK_Shift_L || key == XK_Shift_R)
