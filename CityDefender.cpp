@@ -39,6 +39,7 @@ extern void Test_Robot(double *, double *);
 extern void moveRight(double *, int );
 extern void moveLeft(double * );
 extern int total_running_time(const bool get);
+extern int time_since_mouse_moved(const bool get, bool moved);
 
 //defined types
 typedef double Flt;
@@ -249,8 +250,11 @@ public:
 		} 
 		Colormap cmap = XCreateColormap(dpy, root, vi->visual, AllocNone);
 		swa.colormap = cmap;
-		swa.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask |
-							StructureNotifyMask | SubstructureNotifyMask;
+		//swa.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask |
+							//StructureNotifyMask | SubstructureNotifyMask;
+        swa.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask |
+                            StructureNotifyMask | SubstructureNotifyMask |
+                            PointerMotionMask | MotionNotify |                                                               ButtonPress | ButtonRelease;
 		win = XCreateWindow(dpy, root, 0, 0, g.xres, g.yres, 0,
 								vi->depth, InputOutput, vi->visual,
 								CWColormap | CWEventMask, &swa);
@@ -555,6 +559,7 @@ void checkMouse(XEvent *e)
 	}
 	if (savex != e->xbutton.x || savey != e->xbutton.y) {
 		//Mouse moved
+        time_since_mouse_moved(false, true);
 		savex = e->xbutton.x;
 		savey = e->xbutton.y;
 	}
@@ -951,6 +956,7 @@ void drawRaindrops()
 void render()
 {
 	Rect r;
+    total_render_function_calls(false);
 
 	//Clear the screen
 	glClearColor(1.0, 1.0, 1.0, 1.0);
@@ -1074,13 +1080,13 @@ void render()
          ggprint13(&r, 16, 0x00ffff00, "sec running time: %i",
                                              total_running_time(true));
          ggprint13(&r, 16, 0x00ffff00, "sec since mouse move: %i",
-                                             total_running_time(true));
+                                             time_since_mouse_moved(true, false));
          ggprint13(&r, 16, 0x00ffff00, "sec since key press: %i",
                                              total_running_time(true));
          ggprint13(&r, 16, 0x00ffff00, "n physics calls: %i",
                                              total_running_time(true));
-         ggprint13(&r, 16, 0x00ffff00, "n render calls:: %i",
-                                             total_running_time(true));
+         ggprint13(&r, 16, 0x00ffff00, "n render calls: %i",
+                                             total_render_function_calls(true));
          ggprint13(&r, 16, 0x00ffff00, "mouse distance: %i",
                                              total_running_time(true));
      }
