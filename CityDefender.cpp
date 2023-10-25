@@ -40,7 +40,7 @@ extern void moveRight(double *, int );
 extern void moveLeft(double * );
 extern int total_running_time(const bool get);
 extern int time_since_mouse_moved(const bool get, bool moved);
-
+extern int time_since_key_press(const bool get);
 //defined types
 typedef double Flt;
 typedef double Vec[3];
@@ -1081,8 +1081,8 @@ void render()
                                              total_running_time(true));
          ggprint13(&r, 16, 0x00ffff00, "sec since mouse move: %i",
                                              time_since_mouse_moved(true, false));
-         ggprint13(&r, 16, 0x00ffff00, "sec since key press: %i",
-                                             total_running_time(true));
+        ggprint13(&r, 16, 0x00ffff00, "sec since key press: %i",
+                                           time_since_key_press(true));
          ggprint13(&r, 16, 0x00ffff00, "n physics calls: %i",
                                              total_running_time(true));
          ggprint13(&r, 16, 0x00ffff00, "n render calls: %i",
