@@ -7,6 +7,6 @@ extern void Test_Robot(double * , double * );
 extern void moveRight(double *, int );
 extern void moveLeft(double *);
 extern int total_running_time(const bool get);
-
+extern double total_mouse_distance(double x, double y, const bool get);
 
 #endif

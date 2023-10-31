@@ -41,6 +41,7 @@ extern void moveLeft(double * );
 extern int total_running_time(const bool get);
 extern int time_since_mouse_moved(const bool get, bool moved);
 extern int time_since_key_press(const bool get);
+extern double total_mouse_distance(double x, double y, const bool get);
 //defined types
 typedef double Flt;
 typedef double Vec[3];
@@ -562,12 +563,14 @@ void checkMouse(XEvent *e)
         time_since_mouse_moved(false, true);
 		savex = e->xbutton.x;
 		savey = e->xbutton.y;
+        if (savex < g.xres && savey < g.yres) {
+            total_mouse_distance(savex, savey, false);
+        }
 	}
 }
 void updateKeyPressTime();
 int checkKeys(XEvent *e)
 {
-	{
     //keyboard input?
     static int shift=0;
     if (e->type != KeyPress && e->type != KeyRelease)
@@ -1091,8 +1094,8 @@ void render()
                                              total_running_time(true));
          ggprint13(&r, 16, 0x00ffff00, "n render calls: %i",
                                              total_render_function_calls(true));
-         ggprint13(&r, 16, 0x00ffff00, "mouse distance: %i",
-                                             total_running_time(true));
+         ggprint13(&r, 16, 0x00ffff00, "mouse distance: %fi",
+                                             total_mouse_distance(0, 0, true));
      }
 
 }
