@@ -133,11 +133,12 @@ public:
 			unlink(ppmname);
 	}
 };
-Image img[4] = {
+Image img[5] = {
 "./images/Robot.gif",
 "./images/CityBackground.png",
 "./images/forestTrans.png",
-"./images/umbrella.png" };
+"./images/umbrella.png",
+"./images/orange_drone.gif"};
 
 class Global {
 public:
