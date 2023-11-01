@@ -1053,6 +1053,11 @@ void render()
     if (g.showHealth) {
         display_hp(g.health, g.xres, g.yres);
     }
+    //display the game over screen when health gets to 0
+    if (g.health == 0) {
+        display_gameover(g.xres, g.yres);
+        display_credits(g.xres, g.yres);
+    }
 	//
 	//
 	unsigned int c = 0x00ffff44;
