@@ -5,8 +5,20 @@
 //date:    2013 to 2021
 //
 //to do list:
-// 1. need credits for student work in get-alpha-channel function.
-//    done
+// Figure out getting rid of background of pictures - Jayden
+//
+// Level system(what's different between levels... are levels by time or are they by how many drones have been shot down).
+//
+// Start menu w/ options (sound, background, character options?) - Karen
+//
+// Come up with an instructions page (countdown page) that happens when you start the game. 
+//
+// Check asteroids framework for shooting functionality and recognizing damage- Bryan
+//
+// Power-ups
+//
+// Background music and sound effects- Alia
+//
 //
 //This program demonstrates the use of OpenGL and XWindows
 //
