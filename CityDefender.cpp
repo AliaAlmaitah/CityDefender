@@ -150,7 +150,7 @@ Image img[5] = {
 "./images/CityBackground.png",
 "./images/forestTrans.png",
 "./images/umbrella.png",
-"./images/orange_drone.gif"};
+"./images/orangeDrone.png"};
 
 class Global {
 public:
@@ -158,14 +158,17 @@ public:
 	int xres, yres;
 	GLuint bigfootTexture;
 	GLuint silhouetteTexture;
+    GLuint droneSilhouetteTexture;
 	GLuint cityTexture;
 	GLuint forestTransTexture;
 	GLuint umbrellaTexture;
+    GLuint droneTexture;
 	int showBigfoot;
     //used for robot test
     int showRobot;
 	int city;
 	int silhouette;
+    int droneSilhouette;
 	int trees;
 	int showRain;
 	int showUmbrella;
@@ -174,6 +177,7 @@ public:
 	int showBorder;
     int showHealth;
     float health;
+    int showDrone;
     //used for game over screen
     int showend;
     bool statistics;
@@ -191,9 +195,11 @@ public:
 		showUmbrella=0;
 		deflection=0;
         //Jayden's changes
+        droneSilhouette=1;
 		showBorder=0;
         showHealth=1;
         health=100.0;
+        showDrone=0;
         //
         showend=0;
 	}
@@ -207,6 +213,13 @@ public:
 	Vec pos;
 	Vec vel;
 } bigfoot;
+
+//add drone class
+class Drone {
+public:
+    Vec pos;
+    Vec vel;
+} drone;
 
 class Raindrop {
 public:
@@ -459,6 +472,8 @@ void initOpengl(void)
     glGenTextures(1, &g.silhouetteTexture);
     glGenTextures(1, &g.cityTexture);
     glGenTextures(1, &g.umbrellaTexture);
+    glGenTextures(1, &g.droneTexture);
+    glGenTextures(1, &g.droneSilhouetteTexture);
     //-------------------------------------------------------------------------
     //bigfoot
     //
@@ -505,7 +520,29 @@ void initOpengl(void)
     //glTexImage2D(GL_TEXTURE_2D, 0, 3, w, h, 0,
     //  GL_RGB, GL_UNSIGNED_BYTE, bigfootImage->data);
     //-------------------------------------------------------------------------
+    ////JAYDEN ADDED THIS FOR DRONES
+    ///
+    w = img[4].width;
+    h = img[4].height;
     //
+    glBindTexture(GL_TEXTURE_2D, g.droneTexture);
+    //
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, 3, w, h, 0,
+        GL_RGB, GL_UNSIGNED_BYTE, img[4].data);
+    //starting drone silhouette
+    glBindTexture(GL_TEXTURE_2D, g.droneSilhouetteTexture);
+    //
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+    //
+    //must build a new set of data...
+    unsigned char *droneData = buildAlphaData(&img[4]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+                                GL_RGBA, GL_UNSIGNED_BYTE, droneData);
+    free(droneData);
+    //-------------------------------------------------------------------------
     //city
     glBindTexture(GL_TEXTURE_2D, g.cityTexture);
     //
@@ -551,6 +588,9 @@ void init() {
 	umbrella.shape = UMBRELLA_FLAT;
 	MakeVector(-150.0,180.0,0.0, bigfoot.pos);
 	MakeVector(6.0,0.0,0.0, bigfoot.vel);
+    //JAYDEN ADDED FOR DRONE
+    MakeVector(200.0, 400.0, 0.0, drone.pos);
+    MakeVector(0.0, 0.0, 0.0, drone.vel);
 }
 
 void checkMouse(XEvent *e)
@@ -619,7 +659,13 @@ int checkKeys(XEvent *e)
             break;
 		case XK_d:
             moveRight(&bigfoot.pos[0], g.xres);
-		//	g.deflection ^= 1;
+            break;
+        case XK_c:
+            g.showDrone = !g.showDrone;
+            //if (g.showDrone) {
+            //    drone.pos[0] = 200.0;
+            //    drone.pos[1] = 200.0;
+            //}
 			break;
         case XK_a:
             moveLeft(&bigfoot.pos[0]);
@@ -1021,6 +1067,7 @@ void render()
 		glEnd();
 		glPopMatrix();
 		//
+
 		if (g.trees && g.silhouette) {
 			glBindTexture(GL_TEXTURE_2D, g.forestTransTexture);
 			glBegin(GL_QUADS);
@@ -1032,7 +1079,32 @@ void render()
 		}
 		glDisable(GL_ALPHA_TEST);
 	}
-
+    //trying to render drones -Jayden
+    float droneWid = 40.0;
+    float droneHei = 20.0;
+    if (g.showDrone) {
+        glPushMatrix();
+            glTranslatef(drone.pos[0], drone.pos[1], drone.pos[2]);
+            glBindTexture(GL_TEXTURE_2D, g.droneSilhouetteTexture);
+            glEnable(GL_ALPHA_TEST);
+            glAlphaFunc(GL_GREATER, 0.0f);
+            glColor4ub(255,255,255,255);
+        glBegin(GL_QUADS);
+            if (drone.vel[0] > 0.0) {
+                glTexCoord2f(0.0f, 1.0f); glVertex2i(-droneWid,-droneHei);
+                glTexCoord2f(0.0f, 0.0f); glVertex2i(-droneWid, droneHei);
+                glTexCoord2f(1.0f, 0.0f); glVertex2i( droneWid, droneHei);
+                glTexCoord2f(1.0f, 1.0f); glVertex2i( droneWid,-droneHei);
+            } else {
+                glTexCoord2f(1.0f, 1.0f); glVertex2i(-droneWid,-droneHei);
+                glTexCoord2f(1.0f, 0.0f); glVertex2i(-droneWid, droneHei);
+                glTexCoord2f(0.0f, 0.0f); glVertex2i( droneWid, droneHei);
+                glTexCoord2f(0.0f, 1.0f); glVertex2i( droneWid,-droneHei);
+            }
+        glEnd();
+        glPopMatrix();
+    }
+// end of jaydens changes
     //game over screen
     if (g.showend) {
         display_gameover(g.xres, g.yres);
@@ -1070,6 +1142,9 @@ void render()
         display_gameover(g.xres, g.yres);
         display_credits(g.xres, g.yres);
     }
+    if (g.showDrone) {
+
+    }
 	//
 	//
 	unsigned int c = 0x00ffff44;
@@ -1079,6 +1154,7 @@ void render()
 	ggprint8b(&r, 16, c, "B - Robot");
     ggprint8b(&r, 16, c, "G - Game Over Screen");
 	ggprint8b(&r, 16, c, "Z - Character");
+	ggprint8b(&r, 16, c, "C - Drone");
 //	ggprint8b(&r, 16, c, "S - Silhouette");
 //	ggprint8b(&r, 16, c, "T - Trees");
 //	ggprint8b(&r, 16, c, "U - Umbrella");
