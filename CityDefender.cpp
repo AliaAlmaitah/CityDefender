@@ -33,13 +33,13 @@
 #include "jcanales.h"
 #include "ksantiago.h"
 
-extern void display_border(int xres, int yres);
-extern void display_hp(float health, int xres, int yres);
-extern void Test_Robot(double *, double *);
-extern void moveRight(double *, int );
-extern void moveLeft(double * );
-extern int total_running_time(const bool get);
-extern int time_since_mouse_moved(const bool get, bool moved);
+//extern void display_border(int xres, int yres);
+//extern void display_hp(float health, int xres, int yres);
+//extern void Test_Robot(double *, double *);
+//extern void moveRight(double *, int );
+//extern void moveLeft(double * );
+//extern int total_running_time(const bool get);
+//extern int time_since_mouse_moved(const bool get, bool moved);
 extern int time_since_key_press(const bool get);
 //defined types
 typedef double Flt;
@@ -363,7 +363,16 @@ int main()
 			physicsCountdown -= physicsRate;
 		}
 		//Always render every frame.
-		render();
+        //Start screen for game. - Karen Santiago
+        static int start_game = 0;
+        if (start_game == 0) {
+            startscreen(g.xres, g.yres); //&g.cityTexture);
+            XEvent e = x11.getXNextEvent();
+            start_game = start(start_game, &e);
+        }
+        if (start_game == 1) {
+            render();
+        }
 		x11.swapBuffers();
 	}
 	//cleanupXWindows();
@@ -567,7 +576,6 @@ void checkMouse(XEvent *e)
 void updateKeyPressTime();
 int checkKeys(XEvent *e)
 {
-	{
     //keyboard input?
     static int shift=0;
     if (e->type != KeyPress && e->type != KeyRelease)
@@ -902,6 +910,7 @@ void checkRaindrops()
 
 void physics()
 {
+    total_physics_function_calls(false);
 	if (g.showBigfoot)
 		moveBigfoot();
 	if (g.showRain)
@@ -1017,7 +1026,7 @@ void render()
 		glDisable(GL_ALPHA_TEST);
 	}
 
-    //game over screen
+    //game over screen - Karen Santiago
     if (g.showend) {
         display_gameover(g.xres, g.yres);
         display_credits(g.xres, g.yres);
@@ -1088,7 +1097,7 @@ void render()
         ggprint13(&r, 16, 0x00ffff00, "sec since key press: %i",
                                            time_since_key_press(true));
          ggprint13(&r, 16, 0x00ffff00, "n physics calls: %i",
-                                             total_running_time(true));
+                                            total_physics_function_calls(true));
          ggprint13(&r, 16, 0x00ffff00, "n render calls: %i",
                                              total_render_function_calls(true));
          ggprint13(&r, 16, 0x00ffff00, "mouse distance: %i",

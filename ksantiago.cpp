@@ -6,16 +6,38 @@
 
 #include <GL/glx.h>
 #include "fonts.h"
-/*
-void display_startscreen() {
+
+void startscreen(int xres, int yres) { //GLuint *cityTexture) {
+    //glGenTextures(1, cityTexture);
     Rect r;
-    r.bot = (yres/2) - 20;
-    r.left = (xres/2) - 50;
+    r.bot = (yres/2);
+    r.left = (xres/2) - 125;
     r.center = 0;
     ggprint40(&r, 0, 0x00ffffff, "City Defender");
     r.bot -= 20;
-    ggprint12(&r, 0, 0x00ffffff, "Press 'P' to play.");
-}*/
+    r.left = (xres/2) - 50;
+    ggprint12(&r, 0, 0x00ffffff, "Press 'X' to play.");
+}
+
+int start(int start_game, XEvent *e) {
+    int key = (XLookupKeysym(&e->xkey, 0) & 0x0000ffff);
+    if (key == XK_x) {
+        start_game = 1;
+        return start_game;
+    }
+    return start_game;
+}
+
+int total_physics_function_calls(const bool get) {
+    static int physics = 0;
+    if (get == false) {
+        physics++;
+    }
+    if (get == true) {
+        return physics;
+    }
+    return 0;
+}
 
 int total_render_function_calls(const bool get) {
     static int count = 0;
