@@ -146,7 +146,7 @@ public:
 	}
 };
 Image img[5] = {
-"./images/Robot.jpeg",
+"./images/newerRobot.png",
 "./images/CityBackground.png",
 "./images/forestTrans.png",
 "./images/umbrella.png",
