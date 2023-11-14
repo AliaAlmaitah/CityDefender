@@ -1089,10 +1089,6 @@ void render()
 		}
 		glDisable(GL_ALPHA_TEST);
 	}
-<<<<<<< HEAD
-
-    //game over screen - Karen Santiago
-=======
     //trying to render drones -Jayden
     float droneWid = 40.0;
     float droneHei = 20.0;
@@ -1119,8 +1115,7 @@ void render()
         glPopMatrix();
     }
 // end of jaydens changes
-    //game over screen
->>>>>>> main
+    //game over screen - Karen Santiago
     if (g.showend) {
         display_gameover(g.xres, g.yres);
         display_credits(g.xres, g.yres);
