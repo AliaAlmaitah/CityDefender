@@ -41,10 +41,11 @@
 #include "log.h"
 //#include "ppm.h"
 #include "fonts.h"
+#include "aalmaitah.h"
 #include "bestrada.h"
 #include "jcanales.h"
 #include "ksantiago.h"
-
+/*
 extern void display_border(int xres, int yres);
 extern void display_hp(float health, int xres, int yres);
 extern void Test_Robot(double *, double *);
@@ -54,6 +55,7 @@ extern int total_running_time(const bool get);
 extern int time_since_mouse_moved(const bool get, bool moved);
 extern int time_since_key_press(const bool get);
 extern double total_mouse_distance(double x, double y, const bool get);
+*/
 //defined types
 typedef double Flt;
 typedef double Vec[3];
