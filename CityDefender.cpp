@@ -390,7 +390,16 @@ int main()
 			physicsCountdown -= physicsRate;
 		}
 		//Always render every frame.
-		render();
+        //Start screen for game. - Karen Santiago
+        static int start_game = 0;
+        if (start_game == 0) {
+            startscreen(g.xres, g.yres); //&g.cityTexture);
+            XEvent e = x11.getXNextEvent();
+            start_game = start(start_game, &e);
+        }
+        if (start_game == 1) {
+            render();
+        }
 		x11.swapBuffers();
 	}
 	//cleanupXWindows();
@@ -964,6 +973,7 @@ void checkRaindrops()
 
 void physics()
 {
+    total_physics_function_calls(false);
 	if (g.showBigfoot)
 		moveBigfoot();
 	if (g.showRain)
@@ -1105,7 +1115,7 @@ void render()
         glPopMatrix();
     }
 // end of jaydens changes
-    //game over screen
+    //game over screen - Karen Santiago
     if (g.showend) {
         display_gameover(g.xres, g.yres);
         display_credits(g.xres, g.yres);
@@ -1185,7 +1195,7 @@ void render()
         ggprint13(&r, 16, 0x00ffff00, "sec since key press: %i",
                                            time_since_key_press(true));
          ggprint13(&r, 16, 0x00ffff00, "n physics calls: %i",
-                                             total_running_time(true));
+                                            total_physics_function_calls(true));
          ggprint13(&r, 16, 0x00ffff00, "n render calls: %i",
                                              total_render_function_calls(true));
          ggprint13(&r, 16, 0x00ffff00, "mouse distance: %fi",

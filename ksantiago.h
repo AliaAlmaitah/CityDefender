@@ -6,6 +6,9 @@
 //called from main program.
 extern void display_gameover(int xres, int yres);
 extern void display_credits(int xres, int yres);
+extern int total_physics_function_calls(const bool get);
 extern int total_render_function_calls(const bool get);
+extern void startscreen(int xres, int yres); //GLuint *cityTexture);
+extern int start(int start_game, XEvent *e);
 
 #endif //_KSANTIAGO_H_
