@@ -5,8 +5,20 @@
 //date:    2013 to 2021
 //
 //to do list:
-// 1. need credits for student work in get-alpha-channel function.
-//    done
+// Figure out getting rid of background of pictures - Jayden
+//
+// Level system(what's different between levels... are levels by time or are they by how many drones have been shot down).
+//
+// Start menu w/ options (sound, background, character options?) - Karen
+//
+// Come up with an instructions page (countdown page) that happens when you start the game. 
+//
+// Check asteroids framework for shooting functionality and recognizing damage- Bryan
+//
+// Power-ups
+//
+// Background music and sound effects- Alia
+//
 //
 //This program demonstrates the use of OpenGL and XWindows
 //
@@ -33,14 +45,15 @@
 #include "jcanales.h"
 #include "ksantiago.h"
 
-//extern void display_border(int xres, int yres);
-//extern void display_hp(float health, int xres, int yres);
-//extern void Test_Robot(double *, double *);
-//extern void moveRight(double *, int );
-//extern void moveLeft(double * );
-//extern int total_running_time(const bool get);
-//extern int time_since_mouse_moved(const bool get, bool moved);
+extern void display_border(int xres, int yres);
+extern void display_hp(float health, int xres, int yres);
+extern void Test_Robot(double *, double *);
+extern void moveRight(double *, int );
+extern void moveLeft(double * );
+extern int total_running_time(const bool get);
+extern int time_since_mouse_moved(const bool get, bool moved);
 extern int time_since_key_press(const bool get);
+extern double total_mouse_distance(double x, double y, const bool get);
 //defined types
 typedef double Flt;
 typedef double Vec[3];
@@ -132,11 +145,12 @@ public:
 			unlink(ppmname);
 	}
 };
-Image img[4] = {
-"./images/Robot.gif",
+Image img[5] = {
+"./images/newerRobot.png",
 "./images/CityBackground.png",
 "./images/forestTrans.png",
-"./images/umbrella.png" };
+"./images/umbrella.png",
+"./images/orangeDrone.png"};
 
 class Global {
 public:
@@ -144,14 +158,17 @@ public:
 	int xres, yres;
 	GLuint bigfootTexture;
 	GLuint silhouetteTexture;
+    GLuint droneSilhouetteTexture;
 	GLuint cityTexture;
 	GLuint forestTransTexture;
 	GLuint umbrellaTexture;
+    GLuint droneTexture;
 	int showBigfoot;
     //used for robot test
     int showRobot;
 	int city;
 	int silhouette;
+    int droneSilhouette;
 	int trees;
 	int showRain;
 	int showUmbrella;
@@ -160,6 +177,7 @@ public:
 	int showBorder;
     int showHealth;
     float health;
+    int showDrone;
     //used for game over screen
     int showend;
     bool statistics;
@@ -177,9 +195,11 @@ public:
 		showUmbrella=0;
 		deflection=0;
         //Jayden's changes
+        droneSilhouette=1;
 		showBorder=0;
         showHealth=1;
         health=100.0;
+        showDrone=0;
         //
         showend=0;
 	}
@@ -193,6 +213,13 @@ public:
 	Vec pos;
 	Vec vel;
 } bigfoot;
+
+//add drone class
+class Drone {
+public:
+    Vec pos;
+    Vec vel;
+} drone;
 
 class Raindrop {
 public:
@@ -454,6 +481,8 @@ void initOpengl(void)
     glGenTextures(1, &g.silhouetteTexture);
     glGenTextures(1, &g.cityTexture);
     glGenTextures(1, &g.umbrellaTexture);
+    glGenTextures(1, &g.droneTexture);
+    glGenTextures(1, &g.droneSilhouetteTexture);
     //-------------------------------------------------------------------------
     //bigfoot
     //
@@ -500,7 +529,29 @@ void initOpengl(void)
     //glTexImage2D(GL_TEXTURE_2D, 0, 3, w, h, 0,
     //  GL_RGB, GL_UNSIGNED_BYTE, bigfootImage->data);
     //-------------------------------------------------------------------------
+    ////JAYDEN ADDED THIS FOR DRONES
+    ///
+    w = img[4].width;
+    h = img[4].height;
     //
+    glBindTexture(GL_TEXTURE_2D, g.droneTexture);
+    //
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, 3, w, h, 0,
+        GL_RGB, GL_UNSIGNED_BYTE, img[4].data);
+    //starting drone silhouette
+    glBindTexture(GL_TEXTURE_2D, g.droneSilhouetteTexture);
+    //
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+    //
+    //must build a new set of data...
+    unsigned char *droneData = buildAlphaData(&img[4]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+                                GL_RGBA, GL_UNSIGNED_BYTE, droneData);
+    free(droneData);
+    //-------------------------------------------------------------------------
     //city
     glBindTexture(GL_TEXTURE_2D, g.cityTexture);
     //
@@ -546,6 +597,9 @@ void init() {
 	umbrella.shape = UMBRELLA_FLAT;
 	MakeVector(-150.0,180.0,0.0, bigfoot.pos);
 	MakeVector(6.0,0.0,0.0, bigfoot.vel);
+    //JAYDEN ADDED FOR DRONE
+    MakeVector(200.0, 400.0, 0.0, drone.pos);
+    MakeVector(0.0, 0.0, 0.0, drone.vel);
 }
 
 void checkMouse(XEvent *e)
@@ -571,6 +625,9 @@ void checkMouse(XEvent *e)
         time_since_mouse_moved(false, true);
 		savex = e->xbutton.x;
 		savey = e->xbutton.y;
+        if (savex < g.xres && savey < g.yres) {
+            total_mouse_distance(savex, savey, false);
+        }
 	}
 }
 void updateKeyPressTime();
@@ -611,7 +668,13 @@ int checkKeys(XEvent *e)
             break;
 		case XK_d:
             moveRight(&bigfoot.pos[0], g.xres);
-		//	g.deflection ^= 1;
+            break;
+        case XK_c:
+            g.showDrone = !g.showDrone;
+            //if (g.showDrone) {
+            //    drone.pos[0] = 200.0;
+            //    drone.pos[1] = 200.0;
+            //}
 			break;
         case XK_a:
             moveLeft(&bigfoot.pos[0]);
@@ -1014,6 +1077,7 @@ void render()
 		glEnd();
 		glPopMatrix();
 		//
+
 		if (g.trees && g.silhouette) {
 			glBindTexture(GL_TEXTURE_2D, g.forestTransTexture);
 			glBegin(GL_QUADS);
@@ -1025,8 +1089,38 @@ void render()
 		}
 		glDisable(GL_ALPHA_TEST);
 	}
+<<<<<<< HEAD
 
     //game over screen - Karen Santiago
+=======
+    //trying to render drones -Jayden
+    float droneWid = 40.0;
+    float droneHei = 20.0;
+    if (g.showDrone) {
+        glPushMatrix();
+            glTranslatef(drone.pos[0], drone.pos[1], drone.pos[2]);
+            glBindTexture(GL_TEXTURE_2D, g.droneSilhouetteTexture);
+            glEnable(GL_ALPHA_TEST);
+            glAlphaFunc(GL_GREATER, 0.0f);
+            glColor4ub(255,255,255,255);
+        glBegin(GL_QUADS);
+            if (drone.vel[0] > 0.0) {
+                glTexCoord2f(0.0f, 1.0f); glVertex2i(-droneWid,-droneHei);
+                glTexCoord2f(0.0f, 0.0f); glVertex2i(-droneWid, droneHei);
+                glTexCoord2f(1.0f, 0.0f); glVertex2i( droneWid, droneHei);
+                glTexCoord2f(1.0f, 1.0f); glVertex2i( droneWid,-droneHei);
+            } else {
+                glTexCoord2f(1.0f, 1.0f); glVertex2i(-droneWid,-droneHei);
+                glTexCoord2f(1.0f, 0.0f); glVertex2i(-droneWid, droneHei);
+                glTexCoord2f(0.0f, 0.0f); glVertex2i( droneWid, droneHei);
+                glTexCoord2f(0.0f, 1.0f); glVertex2i( droneWid,-droneHei);
+            }
+        glEnd();
+        glPopMatrix();
+    }
+// end of jaydens changes
+    //game over screen
+>>>>>>> main
     if (g.showend) {
         display_gameover(g.xres, g.yres);
         display_credits(g.xres, g.yres);
@@ -1058,6 +1152,14 @@ void render()
     if (g.showHealth) {
         display_hp(g.health, g.xres, g.yres);
     }
+    //display the game over screen when health gets to 0
+    if (g.health == 0) {
+        display_gameover(g.xres, g.yres);
+        display_credits(g.xres, g.yres);
+    }
+    if (g.showDrone) {
+
+    }
 	//
 	//
 	unsigned int c = 0x00ffff44;
@@ -1067,6 +1169,7 @@ void render()
 	ggprint8b(&r, 16, c, "B - Robot");
     ggprint8b(&r, 16, c, "G - Game Over Screen");
 	ggprint8b(&r, 16, c, "Z - Character");
+	ggprint8b(&r, 16, c, "C - Drone");
 //	ggprint8b(&r, 16, c, "S - Silhouette");
 //	ggprint8b(&r, 16, c, "T - Trees");
 //	ggprint8b(&r, 16, c, "U - Umbrella");
@@ -1100,8 +1203,8 @@ void render()
                                             total_physics_function_calls(true));
          ggprint13(&r, 16, 0x00ffff00, "n render calls: %i",
                                              total_render_function_calls(true));
-         ggprint13(&r, 16, 0x00ffff00, "mouse distance: %i",
-                                             total_running_time(true));
+         ggprint13(&r, 16, 0x00ffff00, "mouse distance: %fi",
+                                             total_mouse_distance(0, 0, true));
      }
 
 }
