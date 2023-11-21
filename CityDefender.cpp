@@ -38,6 +38,7 @@
 //#include <GL/glu.h>
 #include <X11/keysym.h>
 #include <GL/glx.h>
+#include <vector>
 #include "log.h"
 //#include "ppm.h"
 #include "fonts.h"
@@ -598,9 +599,9 @@ void init() {
 	MakeVector(-150.0,180.0,0.0, bigfoot.pos);
 	MakeVector(6.0,0.0,0.0, bigfoot.vel);
     //JAYDEN ADDED FOR DRONE
-    MakeVector(200.0, 400.0, 0.0, drone.pos);
-    MakeVector(0.0, 0.0, 0.0, drone.vel);
-}
+    //MakeVector(200.0, 400.0, 0.0, drone.pos);
+    //MakeVector(0.0, 0.0, 0.0, drone.vel);
+    }
 
 void checkMouse(XEvent *e)
 {
@@ -1090,29 +1091,45 @@ void render()
 		glDisable(GL_ALPHA_TEST);
 	}
     //trying to render drones -Jayden
-    float droneWid = 40.0;
-    float droneHei = 20.0;
+    float droneWid = 30.0;
+    float droneHei = 15.0;
     if (g.showDrone) {
-        glPushMatrix();
-            glTranslatef(drone.pos[0], drone.pos[1], drone.pos[2]);
-            glBindTexture(GL_TEXTURE_2D, g.droneSilhouetteTexture);
-            glEnable(GL_ALPHA_TEST);
-            glAlphaFunc(GL_GREATER, 0.0f);
-            glColor4ub(255,255,255,255);
-        glBegin(GL_QUADS);
-            if (drone.vel[0] > 0.0) {
-                glTexCoord2f(0.0f, 1.0f); glVertex2i(-droneWid,-droneHei);
-                glTexCoord2f(0.0f, 0.0f); glVertex2i(-droneWid, droneHei);
-                glTexCoord2f(1.0f, 0.0f); glVertex2i( droneWid, droneHei);
-                glTexCoord2f(1.0f, 1.0f); glVertex2i( droneWid,-droneHei);
-            } else {
-                glTexCoord2f(1.0f, 1.0f); glVertex2i(-droneWid,-droneHei);
-                glTexCoord2f(1.0f, 0.0f); glVertex2i(-droneWid, droneHei);
-                glTexCoord2f(0.0f, 0.0f); glVertex2i( droneWid, droneHei);
-                glTexCoord2f(0.0f, 1.0f); glVertex2i( droneWid,-droneHei);
-            }
-        glEnd();
-        glPopMatrix();
+        //declare array of drones
+        Drone drones[15];
+        float fxres = g.xres;
+        int d = 0;
+        for (float i=50.0; i<= fxres-50.0; i+=50.0) {
+            //MakeVector(i, 400.0, 0.0, drones[d].pos);
+            //MakeVector(0.0, 0.0, 0.0, drones[d].vel);
+            drones[d].pos[0] = i;
+            drones[d].pos[1] = 400.0;
+            drones[d].pos[2] = 0.0;
+            drones[d].vel[0] = 0.0;
+            drones[d].vel[1] = 0.0;
+            drones[d].vel[2] = 0.0;
+            glPushMatrix();
+                glTranslatef(drones[d].pos[0], drones[d].pos[1], drones[d].pos[2]);
+                glBindTexture(GL_TEXTURE_2D, g.droneSilhouetteTexture);
+                glEnable(GL_ALPHA_TEST);
+                glAlphaFunc(GL_GREATER, 0.0f);
+                glColor4ub(255,255,255,255);
+            glBegin(GL_QUADS);
+                if (drones[d].vel[0] > 0.0) {
+                    glTexCoord2f(0.0f, 1.0f); glVertex2i(-droneWid,-droneHei);
+                    glTexCoord2f(0.0f, 0.0f); glVertex2i(-droneWid, droneHei);
+                    glTexCoord2f(1.0f, 0.0f); glVertex2i( droneWid, droneHei);
+                    glTexCoord2f(1.0f, 1.0f); glVertex2i( droneWid,-droneHei);
+                } else {
+                    glTexCoord2f(1.0f, 1.0f); glVertex2i(-droneWid,-droneHei);
+                    glTexCoord2f(1.0f, 0.0f); glVertex2i(-droneWid, droneHei);
+                    glTexCoord2f(0.0f, 0.0f); glVertex2i( droneWid, droneHei);
+                    glTexCoord2f(0.0f, 1.0f); glVertex2i( droneWid,-droneHei);
+                }
+            glEnd();
+            glPopMatrix();
+            d++;
+
+        }
     }
 // end of jaydens changes
     //game over screen - Karen Santiago
