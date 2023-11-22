@@ -16,15 +16,50 @@ void startscreen(int xres, int yres) { //GLuint *cityTexture) {
     ggprint40(&r, 0, 0x00ffffff, "City Defender");
     r.bot -= 20;
     r.left = (xres/2) - 50;
-    ggprint12(&r, 0, 0x00ffffff, "Press 'X' to play.");
+    ggprint12(&r, 0, 0x00ffffff, "Press 'S' to play.");
 }
 
-int start(int start_game, XEvent *e) {
+/*int start(int start_game, XEvent *e, int xres, int yres) {
     int key = (XLookupKeysym(&e->xkey, 0) & 0x0000ffff);
-    if (key == XK_x) {
+    if (key == XK_s) {
         start_game = 1;
         return start_game;
     }
+    if (key == XK_i) {
+        instructions(xres, yres);
+    }
+    return start_game;
+}*/
+
+void instructions(int xres, int yres) {
+    Rect r;
+    r.bot = (yres/2);
+    r.left = (xres/2) - 50;
+    r.center = 0;
+    ggprint16(&r, 0, 0x00ffffff, "Instructions:");
+    r.bot -= 20;
+    ggprint13(&r, 0, 0x00ffffff, "Use 'blank' to move.");
+    r.bot -= 20;
+    ggprint13(&r, 0, 0x00ffffff, "Press 'blank' to shoot.");
+    r.bot -= 20;
+    ggprint13(&r, 0, 0x00ffffff, "Save the city!");
+    r.bot -= 20;
+    r.left -= 30;
+    ggprint13(&r, 0, 0x00ffffff, "Press 'i' again to return to start screen");
+}
+
+int start(int start_game, XEvent *e, int xres, int yres) {
+    int key = (XLookupKeysym(&e->xkey, 0) & 0x0000ffff);
+    if (key == XK_s) {
+        start_game = 1;
+        return start_game;
+    }
+    if (key == XK_i) {
+        instructions(xres, yres);
+    }
+    //if (key == Escape) {
+    //    return 1;
+    //}
     return start_game;
 }
 
