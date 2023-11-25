@@ -71,6 +71,7 @@ typedef Flt	Matrix[4][4];
 //constants
 const float timeslice = 1.0f;
 const float gravity = -0.2f;
+const int MAX_BULLETS = 11;
 #define ALPHA 1
 
 //-----------------------------------------------------------------------------
@@ -152,6 +153,16 @@ Image img[5] = {
 "./images/umbrella.png",
 "./images/orangeDrone.png"};
 
+class Bullet {
+public:
+    Vec pos;
+    Vec vel;
+    float color[3];
+    struct timespec time;
+public:
+    Bullet() {}
+};
+
 class Global {
 public:
 	int done;
@@ -166,6 +177,10 @@ public:
 	int showBigfoot;
     //used for robot test
     int showRobot;
+    int nbullet;
+    struct timespec bulletTimer;
+    Bullet *barr;
+    char keys[65536];
 	int city;
 	int silhouette;
     int droneSilhouette;
@@ -183,11 +198,13 @@ public:
     bool statistics;
 	Global() {
 		logOpen();
+        barr = new Bullet[MAX_BULLETS];
 		done=0;
 		xres=800;
 		yres=600;
 		showBigfoot=0;
         showRobot = 0; //set to 0
+        nbullet = 0;
 		city=1;
 		silhouette=1;
 		trees=0;
@@ -200,11 +217,14 @@ public:
         showHealth=1;
         health=100.0;
         showDrone=0;
+        memset(keys, 0, 65536);
         //
         showend=0;
+        clock_gettime(CLOCK_REALTIME, &bulletTimer);
 	}
 	~Global() {
 		logClose();
+        delete [] barr;
 	}
 } g;
 
@@ -586,7 +606,7 @@ void init() {
 	umbrella.width2 = umbrella.width * 0.5;
 	umbrella.radius = (float)umbrella.width2;
 	umbrella.shape = UMBRELLA_FLAT;
-	MakeVector(-150.0,180.0,0.0, bigfoot.pos);
+	MakeVector(300.0,80.0,0.0, bigfoot.pos);
 	MakeVector(6.0,0.0,0.0, bigfoot.vel);
     //JAYDEN ADDED FOR DRONE
     MakeVector(200.0, 400.0, 0.0, drone.pos);
@@ -626,13 +646,16 @@ int checkKeys(XEvent *e)
 {
     //keyboard input?
     static int shift=0;
-    if (e->type != KeyPress && e->type != KeyRelease)
-        return 0;
-     if (e->type == KeyPress) {
-        updateKeyPressTime();
-    }
+    if (e->type != KeyPress && e->type != KeyRelease) {
+        return 0; }
+
 	int key = (XLookupKeysym(&e->xkey, 0) & 0x0000ffff);
+
+    if (e->type == KeyPress) {
+        g.keys[key] = 1;
+    }
 	if (e->type == KeyRelease) {
+        g.keys[key] = 0;
 		if (key == XK_Shift_L || key == XK_Shift_R)
 			shift=0;
 		return 0;
@@ -647,10 +670,10 @@ int checkKeys(XEvent *e)
             g.showend ^= 1;
             break;
 		case XK_b:
-			g.showBigfoot ^= 1;
-			if (g.showBigfoot) {
-				bigfoot.pos[0] = -250.0;
-			}
+			//g.showBigfoot ^= 1;
+			//if (g.showBigfoot) {
+			//	bigfoot.pos[0] = -250.0;
+			//}
 			break;
         case XK_z:
             //Robot testing key -Bryan
@@ -658,7 +681,7 @@ int checkKeys(XEvent *e)
             Test_Robot(&bigfoot.pos[0], &bigfoot.pos[1]);
             break;
 		case XK_d:
-            moveRight(&bigfoot.pos[0], g.xres);
+            //moveRight(&bigfoot.pos[0], g.xres);
             break;
         case XK_c:
             g.showDrone = !g.showDrone;
@@ -668,7 +691,7 @@ int checkKeys(XEvent *e)
             //}
 			break;
         case XK_a:
-            moveLeft(&bigfoot.pos[0]);
+            //moveLeft(&bigfoot.pos[0]);
             break;
 		case XK_f:
 			g.city ^= 1;
@@ -968,6 +991,46 @@ void physics()
 		moveBigfoot();
 	if (g.showRain)
 		checkRaindrops();
+    if (g.keys[XK_a])
+        moveLeft(&bigfoot.pos[0]);
+    if (g.keys[XK_d])
+        moveRight(&bigfoot.pos[0], g.xres);
+        
+    struct timespec bt;
+    clock_gettime(CLOCK_REALTIME, &bt);
+    int i = 0;
+    while (i < g.nbullet) {
+        Bullet *b = &g.barr[i];
+        double ts = timeDiff(&b->time, &bt);
+        if (ts > 2.5) {
+            memcpy(&g.barr[i], &g.barr[g.nbullet-1], sizeof(Bullet));
+            g.nbullet--;
+            continue;
+        }
+        b->pos[0] += b->vel[0];
+        b->pos[1] += b->vel[1];
+        i++;
+    }
+    if (g.keys[XK_space]) {
+        struct timespec bt;
+        clock_gettime(CLOCK_REALTIME, &bt);
+        double ts = timeDiff(&g.bulletTimer, &bt);
+        if (ts > 0.1) {
+            timeCopy(&g.bulletTimer, &bt);
+            if (g.nbullet < MAX_BULLETS) {
+                Bullet *b = &g.barr[g.nbullet];
+                timeCopy(&b->time, &bt);
+                b->pos[0] = bigfoot.pos[0];
+                b->pos[1] = bigfoot.pos[1];
+                b->vel[0] = 0;
+                b->vel[1] = 6;
+                b->color[0] = 1.0f;
+                b->color[1] = 1.0f;
+                b->color[2] = 1.0f;
+                g.nbullet++;
+            }
+        }
+    }
 }
 
 void drawUmbrella()
@@ -1029,7 +1092,7 @@ void render()
 	glClear(GL_COLOR_BUFFER_BIT);
 	//
 	//draw a quad with texture
-	float wid = 120.0f;
+	float wid = 50.0f;
 	glColor3f(1.0, 1.0, 1.0);
 	if (g.city) {
 		glBindTexture(GL_TEXTURE_2D, g.cityTexture);
@@ -1040,8 +1103,7 @@ void render()
 			glTexCoord2f(1.0f, 1.0f); glVertex2i(g.xres, 0);
 		glEnd();
 	}
-    //added condition to this if
-	if (g.showRobot || g.showBigfoot) {
+	if (g.showRobot) {
 		    glPushMatrix();
 		    glTranslatef(bigfoot.pos[0], bigfoot.pos[1], bigfoot.pos[2]);
 		if (!g.silhouette) {
@@ -1079,6 +1141,21 @@ void render()
 		}
 		glDisable(GL_ALPHA_TEST);
 	}
+    //------------------------------
+    //render bullets
+	glDisable(GL_TEXTURE_2D);
+    for (int i = 0; i<g.nbullet; i++) {
+        Bullet *b = &g.barr[i];
+        glColor3ub(255, 0, 0);
+        glBegin(GL_QUADS);
+		glTexCoord2f(0.0f, 1.0f); glVertex2i(b->pos[0], b->pos[1]+12.0f);
+		glTexCoord2f(0.0f, 0.0f); glVertex2i(b->pos[0], b->pos[1]);
+		glTexCoord2f(1.0f, 0.0f); glVertex2i(b->pos[0]+3.0f, b->pos[1]);
+		glTexCoord2f(1.0f, 1.0f); glVertex2i(b->pos[0]+3.0f, b->pos[1]+12.0f);
+        glEnd();
+    }
+	glEnable(GL_TEXTURE_2D);
+    //------------------------------
     //trying to render drones -Jayden
     float droneWid = 40.0;
     float droneHei = 20.0;
