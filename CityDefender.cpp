@@ -55,6 +55,7 @@ extern int total_running_time(const bool get);
 extern int time_since_mouse_moved(const bool get, bool moved);
 extern int time_since_key_press(const bool get);
 extern double total_mouse_distance(double x, double y, const bool get);
+extern void render_drones(GLuint silhouette, int xres);
 //defined types
 typedef double Flt;
 typedef double Vec[3];
@@ -588,7 +589,8 @@ void initSounds()
 
 }
 
-void init() {
+void init() 
+{
 	umbrella.pos[0] = 220.0;
 	umbrella.pos[1] = (double)(g.yres-200);
 	VecCopy(umbrella.pos, umbrella.lastpos);
@@ -601,7 +603,7 @@ void init() {
     //JAYDEN ADDED FOR DRONE
     //MakeVector(200.0, 400.0, 0.0, drone.pos);
     //MakeVector(0.0, 0.0, 0.0, drone.vel);
-    }
+}
 
 void checkMouse(XEvent *e)
 {
@@ -1090,46 +1092,9 @@ void render()
 		}
 		glDisable(GL_ALPHA_TEST);
 	}
-    //trying to render drones -Jayden
-    float droneWid = 30.0;
-    float droneHei = 15.0;
+    //rendering drones -Jayden
     if (g.showDrone) {
-        //declare array of drones
-        Drone drones[15];
-        float fxres = g.xres;
-        int d = 0;
-        for (float i=50.0; i<= fxres-50.0; i+=50.0) {
-            //MakeVector(i, 400.0, 0.0, drones[d].pos);
-            //MakeVector(0.0, 0.0, 0.0, drones[d].vel);
-            drones[d].pos[0] = i;
-            drones[d].pos[1] = 400.0;
-            drones[d].pos[2] = 0.0;
-            drones[d].vel[0] = 0.0;
-            drones[d].vel[1] = 0.0;
-            drones[d].vel[2] = 0.0;
-            glPushMatrix();
-                glTranslatef(drones[d].pos[0], drones[d].pos[1], drones[d].pos[2]);
-                glBindTexture(GL_TEXTURE_2D, g.droneSilhouetteTexture);
-                glEnable(GL_ALPHA_TEST);
-                glAlphaFunc(GL_GREATER, 0.0f);
-                glColor4ub(255,255,255,255);
-            glBegin(GL_QUADS);
-                if (drones[d].vel[0] > 0.0) {
-                    glTexCoord2f(0.0f, 1.0f); glVertex2i(-droneWid,-droneHei);
-                    glTexCoord2f(0.0f, 0.0f); glVertex2i(-droneWid, droneHei);
-                    glTexCoord2f(1.0f, 0.0f); glVertex2i( droneWid, droneHei);
-                    glTexCoord2f(1.0f, 1.0f); glVertex2i( droneWid,-droneHei);
-                } else {
-                    glTexCoord2f(1.0f, 1.0f); glVertex2i(-droneWid,-droneHei);
-                    glTexCoord2f(1.0f, 0.0f); glVertex2i(-droneWid, droneHei);
-                    glTexCoord2f(0.0f, 0.0f); glVertex2i( droneWid, droneHei);
-                    glTexCoord2f(0.0f, 1.0f); glVertex2i( droneWid,-droneHei);
-                }
-            glEnd();
-            glPopMatrix();
-            d++;
-
-        }
+        render_drones(g.droneSilhouetteTexture, g.xres);
     }
 // end of jaydens changes
     //game over screen - Karen Santiago
@@ -1168,9 +1133,6 @@ void render()
     if (g.health == 0) {
         display_gameover(g.xres, g.yres);
         display_credits(g.xres, g.yres);
-    }
-    if (g.showDrone) {
-
     }
 	//
 	//
