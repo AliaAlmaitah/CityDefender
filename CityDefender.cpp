@@ -38,6 +38,7 @@
 //#include <GL/glu.h>
 #include <X11/keysym.h>
 #include <GL/glx.h>
+#include <vector>
 #include "log.h"
 //#include "ppm.h"
 #include "fonts.h"
@@ -54,6 +55,7 @@ extern int total_running_time(const bool get);
 extern int time_since_mouse_moved(const bool get, bool moved);
 extern int time_since_key_press(const bool get);
 extern double total_mouse_distance(double x, double y, const bool get);
+extern void render_drones(GLuint silhouette, int xres);
 //defined types
 typedef double Flt;
 typedef double Vec[3];
@@ -410,7 +412,16 @@ int main()
 			physicsCountdown -= physicsRate;
 		}
 		//Always render every frame.
-		render();
+        //Start screen for game. - Karen Santiago
+        static int start_game = 0;
+        if (start_game == 0) {
+            startscreen(g.xres, g.yres); //&g.cityTexture);
+            XEvent e = x11.getXNextEvent();
+            start_game = start(start_game, &e);
+        }
+        if (start_game == 1) {
+            render();
+        }
 		x11.swapBuffers();
 	}
 	//cleanupXWindows();
@@ -598,7 +609,8 @@ void initSounds()
 
 }
 
-void init() {
+void init() 
+{
 	umbrella.pos[0] = 220.0;
 	umbrella.pos[1] = (double)(g.yres-200);
 	VecCopy(umbrella.pos, umbrella.lastpos);
@@ -609,8 +621,8 @@ void init() {
 	MakeVector(300.0,80.0,0.0, bigfoot.pos);
 	MakeVector(6.0,0.0,0.0, bigfoot.vel);
     //JAYDEN ADDED FOR DRONE
-    MakeVector(200.0, 400.0, 0.0, drone.pos);
-    MakeVector(0.0, 0.0, 0.0, drone.vel);
+    //MakeVector(200.0, 400.0, 0.0, drone.pos);
+    //MakeVector(0.0, 0.0, 0.0, drone.vel);
 }
 
 void checkMouse(XEvent *e)
@@ -987,6 +999,7 @@ void checkRaindrops()
 
 void physics()
 {
+    total_physics_function_calls(false);
 	if (g.showBigfoot)
 		moveBigfoot();
 	if (g.showRain)
@@ -1156,33 +1169,12 @@ void render()
     }
 	glEnable(GL_TEXTURE_2D);
     //------------------------------
-    //trying to render drones -Jayden
-    float droneWid = 40.0;
-    float droneHei = 20.0;
+    //rendering drones -Jayden
     if (g.showDrone) {
-        glPushMatrix();
-            glTranslatef(drone.pos[0], drone.pos[1], drone.pos[2]);
-            glBindTexture(GL_TEXTURE_2D, g.droneSilhouetteTexture);
-            glEnable(GL_ALPHA_TEST);
-            glAlphaFunc(GL_GREATER, 0.0f);
-            glColor4ub(255,255,255,255);
-        glBegin(GL_QUADS);
-            if (drone.vel[0] > 0.0) {
-                glTexCoord2f(0.0f, 1.0f); glVertex2i(-droneWid,-droneHei);
-                glTexCoord2f(0.0f, 0.0f); glVertex2i(-droneWid, droneHei);
-                glTexCoord2f(1.0f, 0.0f); glVertex2i( droneWid, droneHei);
-                glTexCoord2f(1.0f, 1.0f); glVertex2i( droneWid,-droneHei);
-            } else {
-                glTexCoord2f(1.0f, 1.0f); glVertex2i(-droneWid,-droneHei);
-                glTexCoord2f(1.0f, 0.0f); glVertex2i(-droneWid, droneHei);
-                glTexCoord2f(0.0f, 0.0f); glVertex2i( droneWid, droneHei);
-                glTexCoord2f(0.0f, 1.0f); glVertex2i( droneWid,-droneHei);
-            }
-        glEnd();
-        glPopMatrix();
+        render_drones(g.droneSilhouetteTexture, g.xres);
     }
-// end of jaydens changes
-    //game over screen
+    // end of jaydens changes
+    //game over screen - Karen Santiago
     if (g.showend) {
         display_gameover(g.xres, g.yres);
         display_credits(g.xres, g.yres);
@@ -1218,9 +1210,6 @@ void render()
     if (g.health == 0) {
         display_gameover(g.xres, g.yres);
         display_credits(g.xres, g.yres);
-    }
-    if (g.showDrone) {
-
     }
 	//
 	//
@@ -1262,7 +1251,7 @@ void render()
         ggprint13(&r, 16, 0x00ffff00, "sec since key press: %i",
                                            time_since_key_press(true));
          ggprint13(&r, 16, 0x00ffff00, "n physics calls: %i",
-                                             total_running_time(true));
+                                            total_physics_function_calls(true));
          ggprint13(&r, 16, 0x00ffff00, "n render calls: %i",
                                              total_render_function_calls(true));
          ggprint13(&r, 16, 0x00ffff00, "mouse distance: %fi",

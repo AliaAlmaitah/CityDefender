@@ -8,6 +8,16 @@
 #include "fonts.h"
 #include <GL/glx.h>
 #include <ctime>
+#include <vector>
+
+typedef double Vec[3];
+
+class Drone {
+public:
+    Vec pos;
+    Vec vel;
+};
+
 void display_border(int xres, int yres)
 {
 	//draw a border around the window to indicate your test mode
@@ -63,4 +73,44 @@ int time_since_mouse_moved(const bool get, bool moved)
        return time(NULL) - start_time;
     }
     return 0;
+}
+void render_drones(GLuint silhouette, int xres)
+{
+    float droneWid = 30.0;
+    float droneHei = 15.0;
+    Drone drones[15];
+    float fxres = xres;
+    int d = 0;
+    for (float i=50.0; i<= fxres-50.0; i+=50.0) {
+        //MakeVector(i, 400.0, 0.0, drones[d].pos);
+        //MakeVector(0.0, 0.0, 0.0, drones[d].vel);
+        drones[d].pos[0] = i;
+        drones[d].pos[1] = 400.0;
+        drones[d].pos[2] = 0.0;
+        drones[d].vel[0] = 0.0;
+        drones[d].vel[1] = 0.0;
+        drones[d].vel[2] = 0.0;
+        glPushMatrix();
+            glTranslatef(drones[d].pos[0], drones[d].pos[1], drones[d].pos[2]);
+            glBindTexture(GL_TEXTURE_2D, silhouette);
+            glEnable(GL_ALPHA_TEST);
+            glAlphaFunc(GL_GREATER, 0.0f);
+            glColor4ub(255,255,255,255);
+        glBegin(GL_QUADS);
+            if (drones[d].vel[0] > 0.0) {
+                glTexCoord2f(0.0f, 1.0f); glVertex2i(-droneWid,-droneHei);
+                glTexCoord2f(0.0f, 0.0f); glVertex2i(-droneWid, droneHei);
+                glTexCoord2f(1.0f, 0.0f); glVertex2i( droneWid, droneHei);
+                glTexCoord2f(1.0f, 1.0f); glVertex2i( droneWid,-droneHei);
+            } else {
+                glTexCoord2f(1.0f, 1.0f); glVertex2i(-droneWid,-droneHei);
+                glTexCoord2f(1.0f, 0.0f); glVertex2i(-droneWid, droneHei);
+                glTexCoord2f(0.0f, 0.0f); glVertex2i( droneWid, droneHei);
+                glTexCoord2f(0.0f, 1.0f); glVertex2i( droneWid,-droneHei);
+            }
+        glEnd();
+        glPopMatrix();
+        d++;
+
+    }
 }
