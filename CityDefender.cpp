@@ -4,24 +4,6 @@
 //author:  Gordon Griesel
 //date:    2013 to 2021
 //
-//to do list:
-// Figure out getting rid of background of pictures - Jayden
-//
-// Level system(what's different between levels... are levels by time or are they by how many drones have been shot down).
-//
-// Start menu w/ options (sound, background, character options?) - Karen
-//
-// Come up with an instructions page (countdown page) that happens when you start the game. 
-//
-// Check asteroids framework for shooting functionality and recognizing damage- Bryan
-//
-// Power-ups
-//
-// Background music and sound effects- Alia
-//
-//
-//This program demonstrates the use of OpenGL and XWindows
-//
 //Texture maps are displayed.
 //Press B to see bigfoot roaming his forest.
 //
@@ -74,6 +56,7 @@ typedef Flt	Matrix[4][4];
 const float timeslice = 1.0f;
 const float gravity = -0.2f;
 const int MAX_BULLETS = 11;
+const int MAX_FBS = 11;
 #define ALPHA 1
 
 //-----------------------------------------------------------------------------
@@ -165,6 +148,15 @@ public:
     Bullet() {}
 };
 
+class Fireball {
+public:
+    Vec pos;
+    Vec vel;
+    struct timespec timef;
+public:
+    Fireball() {}
+};
+
 class Global {
 public:
 	int done;
@@ -180,7 +172,10 @@ public:
     //used for robot test
     int showRobot;
     int nbullet;
+    int nfb;
     struct timespec bulletTimer;
+    struct timespec fireballTimer;
+    Fireball *fbs;
     Bullet *barr;
     char keys[65536];
 	int city;
@@ -201,6 +196,7 @@ public:
 	Global() {
 		logOpen();
         barr = new Bullet[MAX_BULLETS];
+        fbs = new Fireball[MAX_FBS];
 		done=0;
 		xres=800;
 		yres=600;
@@ -223,10 +219,12 @@ public:
         //
         showend=0;
         clock_gettime(CLOCK_REALTIME, &bulletTimer);
+        clock_gettime(CLOCK_REALTIME, &fireballTimer);
 	}
 	~Global() {
 		logClose();
         delete [] barr;
+        delete [] fbs;
 	}
 } g;
 
@@ -1044,6 +1042,47 @@ void physics()
             }
         }
     }
+
+    struct timespec ft;
+    clock_gettime(CLOCK_REALTIME, &ft);
+    int j = 0;
+    while (j < g.nfb) {
+        Fireball *fb = &g.fbs[j];
+        double fts = timeDiff(&fb->timef, &ft);
+        if (fts > 2.5) {
+            memcpy(&g.fbs[j], &g.fbs[g.nfb-1], sizeof(Fireball));
+            g.nfb--;
+            continue;
+        }
+        fb->pos[0] += fb->vel[0];
+        fb->pos[1] += fb->vel[1];
+        j++;
+    }
+
+    if (g.showDrone) {
+        struct timespec ft;
+        clock_gettime(CLOCK_REALTIME, &ft);
+        double fts = timeDiff(&g.fireballTimer, &ft);
+        if (fts > 0.1) {
+            timeCopy(&g.fireballTimer, &ft);
+            if (g.nfb < MAX_FBS) {
+                //srand(time(0));
+                //int d = (rand() % 10);
+                Fireball *fb = &g.fbs[g.nfb];
+                timeCopy(&fb->timef, &ft);
+                //NEED TO GET DRONE POSITIONS AVAILABLE TO ACCESS
+                //pick random drone at a time for it to fall from
+                fb->pos[0] = 50.0;
+                fb->pos[1] = 400.0;
+                fb->vel[0] = 0;
+                fb->vel[1] = -6;
+                //b->color[0] = 1.0f;
+                //b->color[1] = 1.0f;
+                //b->color[2] = 1.0f;
+                g.nfb++;
+            }
+        }
+    }
 }
 
 void drawUmbrella()
@@ -1169,6 +1208,21 @@ void render()
     }
 	glEnable(GL_TEXTURE_2D);
     //------------------------------
+    //render fireballs
+    glDisable(GL_TEXTURE_2D);
+        for (int i = 0; i<g.nfb; i++) {
+            Fireball *fb = &g.fbs[i];
+            glColor3ub(255, 150, 0);
+            glBegin(GL_QUADS);
+            glTexCoord2f(0.0f, 1.0f); glVertex2i(fb->pos[0], fb->pos[1]+3.0f);
+            glTexCoord2f(0.0f, 0.0f); glVertex2i(fb->pos[0], fb->pos[1]);
+            glTexCoord2f(1.0f, 0.0f); glVertex2i(fb->pos[0]+3.0f, fb->pos[1]);
+            glTexCoord2f(1.0f, 1.0f); glVertex2i(fb->pos[0]+3.0f, 
+                                                            fb->pos[1]+3.0f);
+            glEnd();
+        }
+    glEnable(GL_TEXTURE_2D);
+
     //rendering drones -Jayden
     if (g.showDrone) {
         render_drones(g.droneSilhouetteTexture, g.xres);
