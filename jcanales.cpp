@@ -42,7 +42,11 @@ void display_hp(float health, int xres, int yres)
 {
     const float sep = 2.0;
     const float barWidth = 5.0;
-    glColor3f(1.0f, 0.0f, 0.0f);
+    if (health > 50.0) {
+        glColor3f(0.0f, 1.0f, 0.0f);
+    } else {
+        glColor3f(1.0f, 0.0f, 0.0f);
+    }
     glPushMatrix();
     glBegin(GL_QUADS);
         for (float i = xres-125; i < health + xres-125; i += (sep + barWidth)) {
@@ -58,7 +62,11 @@ void display_hp(float health, int xres, int yres)
     r.bot = yres-60;
     r.left = xres-125;
     r.center = 0;
-    ggprint08(&r, 0, 0x00ff2400, "HP");
+    if (health > 50.0) {
+        ggprint08(&r, 0, 0x00ff00, "HP");
+    } else {
+        ggprint08(&r, 0, 0x00ff2400, "HP");
+    }
 }
 int time_since_mouse_moved(const bool get, bool moved)
 {
@@ -78,7 +86,7 @@ void render_drones(GLuint silhouette, int xres)
 {
     float droneWid = 30.0;
     float droneHei = 15.0;
-    Drone drones[15];
+    Drone drones[11];
     float fxres = xres;
     int d = 0;
     for (float i=50.0; i<= fxres-50.0; i+=50.0) {
