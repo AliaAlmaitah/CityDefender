@@ -24,10 +24,11 @@
 #include "log.h"
 //#include "ppm.h"
 #include "fonts.h"
+#include "aalmaitah.h"
 #include "bestrada.h"
 #include "jcanales.h"
 #include "ksantiago.h"
-
+/*
 extern void display_border(int xres, int yres);
 extern void display_hp(float health, int xres, int yres);
 extern void Test_Robot(double *, double *);
@@ -37,7 +38,10 @@ extern int total_running_time(const bool get);
 extern int time_since_mouse_moved(const bool get, bool moved);
 extern int time_since_key_press(const bool get);
 extern double total_mouse_distance(double x, double y, const bool get);
+
+
 extern void render_drones(GLuint silhouette, int xres);
+*/
 //defined types
 typedef double Flt;
 typedef double Vec[3];
@@ -415,7 +419,7 @@ int main()
         if (start_game == 0) {
             startscreen(g.xres, g.yres); //&g.cityTexture);
             XEvent e = x11.getXNextEvent();
-            start_game = start(start_game, &e);
+            start_game = start(start_game, &e);//, g.xres, g.yres);
         }
         if (start_game == 1) {
             render();
@@ -1231,7 +1235,7 @@ void render()
     //game over screen - Karen Santiago
     if (g.showend) {
         display_gameover(g.xres, g.yres);
-        display_credits(g.xres, g.yres);
+        //display_credits(g.xres, g.yres);
     }
 
 	glDisable(GL_TEXTURE_2D);

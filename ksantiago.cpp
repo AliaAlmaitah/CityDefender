@@ -6,8 +6,13 @@
 
 #include <GL/glx.h>
 #include "fonts.h"
+#include <iostream>
+#include <cstring>
+#include <fstream>
+using namespace std;
 
-void startscreen(int xres, int yres) { //GLuint *cityTexture) {
+void startscreen(int xres, int yres) //GLuint *cityTexture) 
+{
     //glGenTextures(1, cityTexture);
     Rect r;
     r.bot = (yres/2);
@@ -16,19 +21,61 @@ void startscreen(int xres, int yres) { //GLuint *cityTexture) {
     ggprint40(&r, 0, 0x00ffffff, "City Defender");
     r.bot -= 20;
     r.left = (xres/2) - 50;
-    ggprint12(&r, 0, 0x00ffffff, "Press 'X' to play.");
+    ggprint12(&r, 0, 0x00ffffff, "Press 'S' to play.");
 }
 
-int start(int start_game, XEvent *e) {
+/*int start(int start_game, XEvent *e, int xres, int yres) {
     int key = (XLookupKeysym(&e->xkey, 0) & 0x0000ffff);
-    if (key == XK_x) {
+    if (key == XK_s) {
         start_game = 1;
         return start_game;
+    }
+    if (key == XK_i) {
+        instructions(xres, yres);
     }
     return start_game;
 }
 
-int total_physics_function_calls(const bool get) {
+void instructions(int xres, int yres) 
+{
+    Rect r;
+    r.bot = (yres/2);
+    r.left = (xres/2) - 50;
+    r.center = 0;
+    ggprint16(&r, 0, 0x00ffffff, "Instructions:");
+    r.bot -= 20;
+    ggprint13(&r, 0, 0x00ffffff, "Use 'blank' to move.");
+    r.bot -= 20;
+    ggprint13(&r, 0, 0x00ffffff, "Press 'blank' to shoot.");
+    r.bot -= 20;
+    ggprint13(&r, 0, 0x00ffffff, "Save the city!");
+    r.bot -= 20;
+    r.left -= 30;
+    ggprint13(&r, 0, 0x00ffffff, "Press 'i' again to return to start screen");
+}*/
+
+int start(int start_game, XEvent *e)//, int xres, int yres) 
+{
+    int key = (XLookupKeysym(&e->xkey, 0) & 0x0000ffff);
+    switch (key) {
+        //if (key == XK_s) {
+        case XK_s:
+            start_game = 1;
+            return start_game;
+        //}
+        //if (key == XK_i) {
+        //case XK_i:
+        //    instructions(xres, yres);
+        //}
+    //if (key == Escape) {
+    //    return 1;
+    //}
+    }
+    return start_game;
+}
+
+int total_physics_function_calls(const bool get) 
+{
     static int physics = 0;
     if (get == false) {
         physics++;
@@ -39,7 +86,8 @@ int total_physics_function_calls(const bool get) {
     return 0;
 }
 
-int total_render_function_calls(const bool get) {
+int total_render_function_calls(const bool get) 
+{
     static int count = 0;
     if (get == false) {
         count++;
@@ -50,6 +98,7 @@ int total_render_function_calls(const bool get) {
     return 0;
 }
 
+//call highscore and player's score
 void display_gameover(int xres, int yres)
 {
     Rect r;
@@ -57,6 +106,28 @@ void display_gameover(int xres, int yres)
     r.left = xres/2 - 125;
     r.center = 0;
     ggprint40(&r, 0, 0x00ff2400, "Game Over");
+    r.left = xres/2 - 90;
+    r.bot -= 20;
+
+    const char filename[] = "highscore.txt";
+    ifstream fin;
+    fin.open(filename);
+    if (fin.fail()) {
+        cout << "Error - opening" << filename << endl;
+        exit(0);
+    }
+    char line[10000];
+    fin.getline(line, 10000);
+    //char str[] = "1";
+    ggprint16(&r, 0, 0x00ff2400, "High Score: ");
+    r.left = xres/2 + 20;
+    ggprint16(&r, 0, 0x00ff2400, line);
+    r.left = xres/2 - 90;
+    r.bot -= 20;
+    ggprint16(&r, 0, 0x00ff2400, "Your Score: ");
+    //print player's score
+    //if player's score is high than high score, put into file.
+    fin.close();
 }
 
 void display_credits(int xres, int yres)
