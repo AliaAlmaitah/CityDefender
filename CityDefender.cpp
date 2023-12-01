@@ -46,8 +46,8 @@ extern void Test_Robot(double *, double *);
 extern void moveRight(double *, int );
 extern void moveLeft(double * );
 extern void Controls(int ,int );
-extern float xformation(int form, int count);
-extern float yformation(int form, int count);
+extern float xformation(int , int );
+extern float yformation(int , int );
 extern int total_running_time(const bool get);
 extern int time_since_mouse_moved(const bool get, bool moved);
 extern int time_since_key_press(const bool get);
@@ -203,7 +203,8 @@ public:
     struct timespec fireballTimer;
     Fireball *fbs;
     Bullet *barr;
-    Drone *drs; 
+    Drone *drs;
+    int dr_count; 
     char keys[65536];
 	int city;
 	int silhouette;
@@ -645,12 +646,13 @@ void init()
 	umbrella.shape = UMBRELLA_FLAT;
 	MakeVector(300.0,80.0,0.0, bigfoot.pos);
 	MakeVector(6.0,0.0,0.0, bigfoot.vel);
-    int form = (rand() % 2) + 1;
+    srand(time(NULL));
+    int frm = rand() % 3 + 1;
     for(int i = 0; i < MAX_DRONES; i++)
     {
         Drone *d = &g.drs[i];
-        d->pos[0] = xformation(form, i+1); 
-        d->pos[1] = yformation(form, i+1); 
+        d->pos[0] = xformation(frm, i+1); 
+        d->pos[1] = yformation(frm, i+1); 
         d->pos[2] = 0;
         d->vel[0] = 0;
         d->vel[1] = 0;
