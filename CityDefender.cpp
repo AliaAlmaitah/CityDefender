@@ -397,7 +397,7 @@ int main()
         if (start_game == 0) {
             startscreen(g.xres, g.yres); //&g.cityTexture);
             XEvent e = x11.getXNextEvent();
-            start_game = start(start_game, &e, g.xres, g.yres);
+            start_game = start(start_game, &e);//, g.xres, g.yres);
         }
         if (start_game == 1) {
             render();
@@ -1120,7 +1120,7 @@ void render()
     //game over screen - Karen Santiago
     if (g.showend) {
         display_gameover(g.xres, g.yres);
-        display_credits(g.xres, g.yres);
+        //display_credits(g.xres, g.yres);
     }
 
 	glDisable(GL_TEXTURE_2D);
