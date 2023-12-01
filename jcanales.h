@@ -5,4 +5,5 @@
 extern void display_border(int xres, int yres);
 extern void display_hp(float health, int xres, int yres);
 extern int time_since_mouse_moved(const bool get, bool moved);
+extern void render_drones(GLuint silhouette, int xres);
 #endif

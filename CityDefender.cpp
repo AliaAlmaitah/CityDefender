@@ -4,24 +4,6 @@
 //author:  Gordon Griesel
 //date:    2013 to 2021
 //
-//to do list:
-// Figure out getting rid of background of pictures - Jayden
-//
-// Level system(what's different between levels... are levels by time or are they by how many drones have been shot down).
-//
-// Start menu w/ options (sound, background, character options?) - Karen
-//
-// Come up with an instructions page (countdown page) that happens when you start the game. 
-//
-// Check asteroids framework for shooting functionality and recognizing damage- Bryan
-//
-// Power-ups
-//
-// Background music and sound effects- Alia
-//
-//
-//This program demonstrates the use of OpenGL and XWindows
-//
 //Texture maps are displayed.
 //Press B to see bigfoot roaming his forest.
 //
@@ -38,6 +20,7 @@
 //#include <GL/glu.h>
 #include <X11/keysym.h>
 #include <GL/glx.h>
+#include <vector>
 #include "log.h"
 //#include "ppm.h"
 #include "fonts.h"
@@ -55,6 +38,9 @@ extern int total_running_time(const bool get);
 extern int time_since_mouse_moved(const bool get, bool moved);
 extern int time_since_key_press(const bool get);
 extern double total_mouse_distance(double x, double y, const bool get);
+
+
+extern void render_drones(GLuint silhouette, int xres);
 */
 //defined types
 typedef double Flt;
@@ -73,6 +59,8 @@ typedef Flt	Matrix[4][4];
 //constants
 const float timeslice = 1.0f;
 const float gravity = -0.2f;
+const int MAX_BULLETS = 11;
+const int MAX_FBS = 11;
 #define ALPHA 1
 
 //-----------------------------------------------------------------------------
@@ -154,6 +142,25 @@ Image img[5] = {
 "./images/umbrella.png",
 "./images/orangeDrone.png"};
 
+class Bullet {
+public:
+    Vec pos;
+    Vec vel;
+    float color[3];
+    struct timespec time;
+public:
+    Bullet() {}
+};
+
+class Fireball {
+public:
+    Vec pos;
+    Vec vel;
+    struct timespec timef;
+public:
+    Fireball() {}
+};
+
 class Global {
 public:
 	int done;
@@ -168,6 +175,13 @@ public:
 	int showBigfoot;
     //used for robot test
     int showRobot;
+    int nbullet;
+    int nfb;
+    struct timespec bulletTimer;
+    struct timespec fireballTimer;
+    Fireball *fbs;
+    Bullet *barr;
+    char keys[65536];
 	int city;
 	int silhouette;
     int droneSilhouette;
@@ -185,11 +199,14 @@ public:
     bool statistics;
 	Global() {
 		logOpen();
+        barr = new Bullet[MAX_BULLETS];
+        fbs = new Fireball[MAX_FBS];
 		done=0;
 		xres=800;
 		yres=600;
 		showBigfoot=0;
         showRobot = 0; //set to 0
+        nbullet = 0;
 		city=1;
 		silhouette=1;
 		trees=0;
@@ -202,11 +219,16 @@ public:
         showHealth=1;
         health=100.0;
         showDrone=0;
+        memset(keys, 0, 65536);
         //
         showend=0;
+        clock_gettime(CLOCK_REALTIME, &bulletTimer);
+        clock_gettime(CLOCK_REALTIME, &fireballTimer);
 	}
 	~Global() {
 		logClose();
+        delete [] barr;
+        delete [] fbs;
 	}
 } g;
 
@@ -589,7 +611,8 @@ void initSounds()
 
 }
 
-void init() {
+void init() 
+{
 	umbrella.pos[0] = 220.0;
 	umbrella.pos[1] = (double)(g.yres-200);
 	VecCopy(umbrella.pos, umbrella.lastpos);
@@ -597,11 +620,11 @@ void init() {
 	umbrella.width2 = umbrella.width * 0.5;
 	umbrella.radius = (float)umbrella.width2;
 	umbrella.shape = UMBRELLA_FLAT;
-	MakeVector(-150.0,180.0,0.0, bigfoot.pos);
+	MakeVector(300.0,80.0,0.0, bigfoot.pos);
 	MakeVector(6.0,0.0,0.0, bigfoot.vel);
     //JAYDEN ADDED FOR DRONE
-    MakeVector(200.0, 400.0, 0.0, drone.pos);
-    MakeVector(0.0, 0.0, 0.0, drone.vel);
+    //MakeVector(200.0, 400.0, 0.0, drone.pos);
+    //MakeVector(0.0, 0.0, 0.0, drone.vel);
 }
 
 void checkMouse(XEvent *e)
@@ -637,13 +660,16 @@ int checkKeys(XEvent *e)
 {
     //keyboard input?
     static int shift=0;
-    if (e->type != KeyPress && e->type != KeyRelease)
-        return 0;
-     if (e->type == KeyPress) {
-        updateKeyPressTime();
-    }
+    if (e->type != KeyPress && e->type != KeyRelease) {
+        return 0; }
+
 	int key = (XLookupKeysym(&e->xkey, 0) & 0x0000ffff);
+
+    if (e->type == KeyPress) {
+        g.keys[key] = 1;
+    }
 	if (e->type == KeyRelease) {
+        g.keys[key] = 0;
 		if (key == XK_Shift_L || key == XK_Shift_R)
 			shift=0;
 		return 0;
@@ -658,10 +684,10 @@ int checkKeys(XEvent *e)
             g.showend ^= 1;
             break;
 		case XK_b:
-			g.showBigfoot ^= 1;
-			if (g.showBigfoot) {
-				bigfoot.pos[0] = -250.0;
-			}
+			//g.showBigfoot ^= 1;
+			//if (g.showBigfoot) {
+			//	bigfoot.pos[0] = -250.0;
+			//}
 			break;
         case XK_z:
             //Robot testing key -Bryan
@@ -669,7 +695,7 @@ int checkKeys(XEvent *e)
             Test_Robot(&bigfoot.pos[0], &bigfoot.pos[1]);
             break;
 		case XK_d:
-            moveRight(&bigfoot.pos[0], g.xres);
+            //moveRight(&bigfoot.pos[0], g.xres);
             break;
         case XK_c:
             g.showDrone = !g.showDrone;
@@ -679,7 +705,7 @@ int checkKeys(XEvent *e)
             //}
 			break;
         case XK_a:
-            moveLeft(&bigfoot.pos[0]);
+            //moveLeft(&bigfoot.pos[0]);
             break;
 		case XK_f:
 			g.city ^= 1;
@@ -980,6 +1006,87 @@ void physics()
 		moveBigfoot();
 	if (g.showRain)
 		checkRaindrops();
+    if (g.keys[XK_a])
+        moveLeft(&bigfoot.pos[0]);
+    if (g.keys[XK_d])
+        moveRight(&bigfoot.pos[0], g.xres);
+        
+    struct timespec bt;
+    clock_gettime(CLOCK_REALTIME, &bt);
+    int i = 0;
+    while (i < g.nbullet) {
+        Bullet *b = &g.barr[i];
+        double ts = timeDiff(&b->time, &bt);
+        if (ts > 2.5) {
+            memcpy(&g.barr[i], &g.barr[g.nbullet-1], sizeof(Bullet));
+            g.nbullet--;
+            continue;
+        }
+        b->pos[0] += b->vel[0];
+        b->pos[1] += b->vel[1];
+        i++;
+    }
+    if (g.keys[XK_space]) {
+        struct timespec bt;
+        clock_gettime(CLOCK_REALTIME, &bt);
+        double ts = timeDiff(&g.bulletTimer, &bt);
+        if (ts > 0.1) {
+            timeCopy(&g.bulletTimer, &bt);
+            if (g.nbullet < MAX_BULLETS) {
+                Bullet *b = &g.barr[g.nbullet];
+                timeCopy(&b->time, &bt);
+                b->pos[0] = bigfoot.pos[0];
+                b->pos[1] = bigfoot.pos[1];
+                b->vel[0] = 0;
+                b->vel[1] = 6;
+                b->color[0] = 1.0f;
+                b->color[1] = 1.0f;
+                b->color[2] = 1.0f;
+                g.nbullet++;
+            }
+        }
+    }
+
+    struct timespec ft;
+    clock_gettime(CLOCK_REALTIME, &ft);
+    int j = 0;
+    while (j < g.nfb) {
+        Fireball *fb = &g.fbs[j];
+        double fts = timeDiff(&fb->timef, &ft);
+        if (fts > 2.5) {
+            memcpy(&g.fbs[j], &g.fbs[g.nfb-1], sizeof(Fireball));
+            g.nfb--;
+            continue;
+        }
+        fb->pos[0] += fb->vel[0];
+        fb->pos[1] += fb->vel[1];
+        j++;
+    }
+
+    if (g.showDrone) {
+        struct timespec ft;
+        clock_gettime(CLOCK_REALTIME, &ft);
+        double fts = timeDiff(&g.fireballTimer, &ft);
+        if (fts > 0.1) {
+            timeCopy(&g.fireballTimer, &ft);
+            if (g.nfb < MAX_FBS) {
+                //srand(time(0));
+                //int d = (rand() % 10);
+                Fireball *fb = &g.fbs[g.nfb];
+                timeCopy(&fb->timef, &ft);
+                //NEED TO GET DRONE POSITIONS AVAILABLE TO ACCESS
+                //pick random drone at a time for it to fall from
+                fb->pos[0] = 50.0;
+                fb->pos[1] = 400.0;
+                fb->vel[0] = 0;
+                fb->vel[1] = -6;
+                //b->color[0] = 1.0f;
+                //b->color[1] = 1.0f;
+                //b->color[2] = 1.0f;
+                g.nfb++;
+            }
+        }
+    }
 }
 
 void drawUmbrella()
@@ -1041,7 +1148,7 @@ void render()
 	glClear(GL_COLOR_BUFFER_BIT);
 	//
 	//draw a quad with texture
-	float wid = 120.0f;
+	float wid = 50.0f;
 	glColor3f(1.0, 1.0, 1.0);
 	if (g.city) {
 		glBindTexture(GL_TEXTURE_2D, g.cityTexture);
@@ -1052,8 +1159,7 @@ void render()
 			glTexCoord2f(1.0f, 1.0f); glVertex2i(g.xres, 0);
 		glEnd();
 	}
-    //added condition to this if
-	if (g.showRobot || g.showBigfoot) {
+	if (g.showRobot) {
 		    glPushMatrix();
 		    glTranslatef(bigfoot.pos[0], bigfoot.pos[1], bigfoot.pos[2]);
 		if (!g.silhouette) {
@@ -1091,32 +1197,41 @@ void render()
 		}
 		glDisable(GL_ALPHA_TEST);
 	}
-    //trying to render drones -Jayden
-    float droneWid = 40.0;
-    float droneHei = 20.0;
-    if (g.showDrone) {
-        glPushMatrix();
-            glTranslatef(drone.pos[0], drone.pos[1], drone.pos[2]);
-            glBindTexture(GL_TEXTURE_2D, g.droneSilhouetteTexture);
-            glEnable(GL_ALPHA_TEST);
-            glAlphaFunc(GL_GREATER, 0.0f);
-            glColor4ub(255,255,255,255);
+    //------------------------------
+    //render bullets
+	glDisable(GL_TEXTURE_2D);
+    for (int i = 0; i<g.nbullet; i++) {
+        Bullet *b = &g.barr[i];
+        glColor3ub(255, 0, 0);
         glBegin(GL_QUADS);
-            if (drone.vel[0] > 0.0) {
-                glTexCoord2f(0.0f, 1.0f); glVertex2i(-droneWid,-droneHei);
-                glTexCoord2f(0.0f, 0.0f); glVertex2i(-droneWid, droneHei);
-                glTexCoord2f(1.0f, 0.0f); glVertex2i( droneWid, droneHei);
-                glTexCoord2f(1.0f, 1.0f); glVertex2i( droneWid,-droneHei);
-            } else {
-                glTexCoord2f(1.0f, 1.0f); glVertex2i(-droneWid,-droneHei);
-                glTexCoord2f(1.0f, 0.0f); glVertex2i(-droneWid, droneHei);
-                glTexCoord2f(0.0f, 0.0f); glVertex2i( droneWid, droneHei);
-                glTexCoord2f(0.0f, 1.0f); glVertex2i( droneWid,-droneHei);
-            }
+		glTexCoord2f(0.0f, 1.0f); glVertex2i(b->pos[0], b->pos[1]+12.0f);
+		glTexCoord2f(0.0f, 0.0f); glVertex2i(b->pos[0], b->pos[1]);
+		glTexCoord2f(1.0f, 0.0f); glVertex2i(b->pos[0]+3.0f, b->pos[1]);
+		glTexCoord2f(1.0f, 1.0f); glVertex2i(b->pos[0]+3.0f, b->pos[1]+12.0f);
         glEnd();
-        glPopMatrix();
     }
-// end of jaydens changes
+	glEnable(GL_TEXTURE_2D);
+    //------------------------------
+    //render fireballs
+    glDisable(GL_TEXTURE_2D);
+        for (int i = 0; i<g.nfb; i++) {
+            Fireball *fb = &g.fbs[i];
+            glColor3ub(255, 150, 0);
+            glBegin(GL_QUADS);
+            glTexCoord2f(0.0f, 1.0f); glVertex2i(fb->pos[0], fb->pos[1]+3.0f);
+            glTexCoord2f(0.0f, 0.0f); glVertex2i(fb->pos[0], fb->pos[1]);
+            glTexCoord2f(1.0f, 0.0f); glVertex2i(fb->pos[0]+3.0f, fb->pos[1]);
+            glTexCoord2f(1.0f, 1.0f); glVertex2i(fb->pos[0]+3.0f, 
+                                                            fb->pos[1]+3.0f);
+            glEnd();
+        }
+    glEnable(GL_TEXTURE_2D);
+
+    //rendering drones -Jayden
+    if (g.showDrone) {
+        render_drones(g.droneSilhouetteTexture, g.xres);
+    }
+    // end of jaydens changes
     //game over screen - Karen Santiago
     if (g.showend) {
         display_gameover(g.xres, g.yres);
@@ -1153,9 +1268,6 @@ void render()
     if (g.health == 0) {
         display_gameover(g.xres, g.yres);
         display_credits(g.xres, g.yres);
-    }
-    if (g.showDrone) {
-
     }
 	//
 	//
