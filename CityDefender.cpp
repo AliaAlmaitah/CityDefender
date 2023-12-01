@@ -5,19 +5,11 @@
 //date:    2013 to 2021
 //
 //to do list:
-// Figure out getting rid of background of pictures - Jayden
-//
 // Level system(what's different between levels... are levels by time or are they by how many drones have been shot down).
 //
 // Start menu w/ options (sound, background, character options?) - Karen
 //
-// Come up with an instructions page (countdown page) that happens when you start the game. 
-//
-// Check asteroids framework for shooting functionality and recognizing damage- Bryan
-//
 // Power-ups
-//
-// Background music and sound effects- Alia
 //
 //
 //This program demonstrates the use of OpenGL and XWindows
@@ -30,6 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <cstdlib>
 #include <time.h>
 #include <math.h>
 #include <X11/Xlib.h>
@@ -51,11 +44,14 @@ extern void display_hp(float health, int xres, int yres);
 extern void Test_Robot(double *, double *);
 extern void moveRight(double *, int );
 extern void moveLeft(double * );
+extern void Controls(int ,int );
+extern float xformation(int form, int count);
+extern float yformation(int form, int count);
 extern int total_running_time(const bool get);
 extern int time_since_mouse_moved(const bool get, bool moved);
 extern int time_since_key_press(const bool get);
 extern double total_mouse_distance(double x, double y, const bool get);
-extern void render_drones(GLuint silhouette, int xres);
+extern void render_drones(GLuint silhouette, float xpos, float ypos, float vel);
 //defined types
 typedef double Flt;
 typedef double Vec[3];
@@ -74,6 +70,7 @@ typedef Flt	Matrix[4][4];
 const float timeslice = 1.0f;
 const float gravity = -0.2f;
 const int MAX_BULLETS = 11;
+const int MAX_DRONES = 12;
 #define ALPHA 1
 
 //-----------------------------------------------------------------------------
@@ -165,6 +162,13 @@ public:
     Bullet() {}
 };
 
+//add drone class
+class Drone {
+public:
+    Vec pos;
+    Vec vel;
+} drone;
+
 class Global {
 public:
 	int done;
@@ -180,8 +184,10 @@ public:
     //used for robot test
     int showRobot;
     int nbullet;
+    bool inst;
     struct timespec bulletTimer;
     Bullet *barr;
+    Drone *drs; 
     char keys[65536];
 	int city;
 	int silhouette;
@@ -201,6 +207,7 @@ public:
 	Global() {
 		logOpen();
         barr = new Bullet[MAX_BULLETS];
+        drs = new Drone[MAX_DRONES];
 		done=0;
 		xres=800;
 		yres=600;
@@ -208,6 +215,7 @@ public:
         showRobot = 0; //set to 0
         nbullet = 0;
 		city=1;
+        inst = false;
 		silhouette=1;
 		trees=0;
 		showRain=0;
@@ -227,6 +235,7 @@ public:
 	~Global() {
 		logClose();
         delete [] barr;
+        delete [] drs;
 	}
 } g;
 
@@ -235,13 +244,6 @@ public:
 	Vec pos;
 	Vec vel;
 } bigfoot;
-
-//add drone class
-class Drone {
-public:
-    Vec pos;
-    Vec vel;
-} drone;
 
 class Raindrop {
 public:
@@ -423,6 +425,10 @@ int main()
             render();
         }
 		x11.swapBuffers();
+        if (g.inst) {
+            sleep(3);
+            g.inst = false;
+        }
 	}
 	//cleanupXWindows();
 	cleanup_fonts();
@@ -620,6 +626,18 @@ void init()
 	umbrella.shape = UMBRELLA_FLAT;
 	MakeVector(300.0,80.0,0.0, bigfoot.pos);
 	MakeVector(6.0,0.0,0.0, bigfoot.vel);
+    int form = (rand() % 2) + 1;
+    for(int i = 0; i < MAX_DRONES; i++)
+    {
+        Drone *d = &g.drs[i];
+        d->pos[0] = xformation(form, i+1); 
+        d->pos[1] = yformation(form, i+1); 
+        d->pos[2] = 0;
+        d->vel[0] = 0;
+        d->vel[1] = 0;
+        d->vel[2] = 0;
+
+    }
     //JAYDEN ADDED FOR DRONE
     //MakeVector(200.0, 400.0, 0.0, drone.pos);
     //MakeVector(0.0, 0.0, 0.0, drone.vel);
@@ -687,6 +705,9 @@ int checkKeys(XEvent *e)
 			//	bigfoot.pos[0] = -250.0;
 			//}
 			break;
+        case XK_i:
+            g.inst = true;
+            break;
         case XK_z:
             //Robot testing key -Bryan
             g.showRobot = !g.showRobot;
@@ -1012,6 +1033,7 @@ void physics()
     struct timespec bt;
     clock_gettime(CLOCK_REALTIME, &bt);
     int i = 0;
+
     while (i < g.nbullet) {
         Bullet *b = &g.barr[i];
         double ts = timeDiff(&b->time, &bt);
@@ -1028,7 +1050,7 @@ void physics()
         struct timespec bt;
         clock_gettime(CLOCK_REALTIME, &bt);
         double ts = timeDiff(&g.bulletTimer, &bt);
-        if (ts > 0.1) {
+        if (ts > 0.5) {
             timeCopy(&g.bulletTimer, &bt);
             if (g.nbullet < MAX_BULLETS) {
                 Bullet *b = &g.barr[g.nbullet];
@@ -1116,6 +1138,7 @@ void render()
 			glTexCoord2f(1.0f, 1.0f); glVertex2i(g.xres, 0);
 		glEnd();
 	}
+
 	if (g.showRobot) {
 		    glPushMatrix();
 		    glTranslatef(bigfoot.pos[0], bigfoot.pos[1], bigfoot.pos[2]);
@@ -1171,7 +1194,10 @@ void render()
     //------------------------------
     //rendering drones -Jayden
     if (g.showDrone) {
-        render_drones(g.droneSilhouetteTexture, g.xres);
+        for (int i = 0; i < MAX_DRONES; i++) {
+            Drone *d = &g.drs[i];
+            render_drones(g.droneSilhouetteTexture, d->pos[0], d->pos[1], d->vel[0]);
+        }
     }
     // end of jaydens changes
     //game over screen - Karen Santiago
@@ -1221,6 +1247,7 @@ void render()
     ggprint8b(&r, 16, c, "G - Game Over Screen");
 	ggprint8b(&r, 16, c, "Z - Character");
 	ggprint8b(&r, 16, c, "C - Drone");
+	ggprint8b(&r, 16, c, "I - Controls");
 //	ggprint8b(&r, 16, c, "S - Silhouette");
 //	ggprint8b(&r, 16, c, "T - Trees");
 //	ggprint8b(&r, 16, c, "U - Umbrella");
@@ -1257,6 +1284,8 @@ void render()
          ggprint13(&r, 16, 0x00ffff00, "mouse distance: %fi",
                                              total_mouse_distance(0, 0, true));
      }
-
+    if  (g.inst) {
+        Controls(g.xres, g.yres);
+    }
 }
 
