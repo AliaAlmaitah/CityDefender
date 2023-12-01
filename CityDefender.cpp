@@ -35,6 +35,7 @@
 #include "log.h"
 //#include "ppm.h"
 #include "fonts.h"
+#include "aalmaitah.h"
 #include "bestrada.h"
 #include "jcanales.h"
 #include "ksantiago.h"
@@ -52,6 +53,8 @@ extern int time_since_mouse_moved(const bool get, bool moved);
 extern int time_since_key_press(const bool get);
 extern double total_mouse_distance(double x, double y, const bool get);
 extern void render_drones(GLuint silhouette, float xpos, float ypos, float vel);
+extern void render_drones(GLuint silhouette, int xres);
+
 //defined types
 typedef double Flt;
 typedef double Vec[3];
@@ -71,6 +74,7 @@ const float timeslice = 1.0f;
 const float gravity = -0.2f;
 const int MAX_BULLETS = 11;
 const int MAX_DRONES = 12;
+const int MAX_FBS = 11;
 #define ALPHA 1
 
 //-----------------------------------------------------------------------------
@@ -169,6 +173,15 @@ public:
     Vec vel;
 } drone;
 
+class Fireball {
+public:
+    Vec pos;
+    Vec vel;
+    struct timespec timef;
+public:
+    Fireball() {}
+};
+
 class Global {
 public:
 	int done;
@@ -185,7 +198,10 @@ public:
     int showRobot;
     int nbullet;
     bool inst;
+    int nfb;
     struct timespec bulletTimer;
+    struct timespec fireballTimer;
+    Fireball *fbs;
     Bullet *barr;
     Drone *drs; 
     char keys[65536];
@@ -208,6 +224,7 @@ public:
 		logOpen();
         barr = new Bullet[MAX_BULLETS];
         drs = new Drone[MAX_DRONES];
+        fbs = new Fireball[MAX_FBS];
 		done=0;
 		xres=800;
 		yres=600;
@@ -231,11 +248,13 @@ public:
         //
         showend=0;
         clock_gettime(CLOCK_REALTIME, &bulletTimer);
+        clock_gettime(CLOCK_REALTIME, &fireballTimer);
 	}
 	~Global() {
 		logClose();
         delete [] barr;
         delete [] drs;
+        delete [] fbs;
 	}
 } g;
 
@@ -419,7 +438,7 @@ int main()
         if (start_game == 0) {
             startscreen(g.xres, g.yres); //&g.cityTexture);
             XEvent e = x11.getXNextEvent();
-            start_game = start(start_game, &e);
+            start_game = start(start_game, &e);//, g.xres, g.yres);
         }
         if (start_game == 1) {
             render();
@@ -1066,6 +1085,47 @@ void physics()
             }
         }
     }
+
+    struct timespec ft;
+    clock_gettime(CLOCK_REALTIME, &ft);
+    int j = 0;
+    while (j < g.nfb) {
+        Fireball *fb = &g.fbs[j];
+        double fts = timeDiff(&fb->timef, &ft);
+        if (fts > 2.5) {
+            memcpy(&g.fbs[j], &g.fbs[g.nfb-1], sizeof(Fireball));
+            g.nfb--;
+            continue;
+        }
+        fb->pos[0] += fb->vel[0];
+        fb->pos[1] += fb->vel[1];
+        j++;
+    }
+
+    if (g.showDrone) {
+        struct timespec ft;
+        clock_gettime(CLOCK_REALTIME, &ft);
+        double fts = timeDiff(&g.fireballTimer, &ft);
+        if (fts > 0.1) {
+            timeCopy(&g.fireballTimer, &ft);
+            if (g.nfb < MAX_FBS) {
+                //srand(time(0));
+                //int d = (rand() % 10);
+                Fireball *fb = &g.fbs[g.nfb];
+                timeCopy(&fb->timef, &ft);
+                //NEED TO GET DRONE POSITIONS AVAILABLE TO ACCESS
+                //pick random drone at a time for it to fall from
+                fb->pos[0] = 50.0;
+                fb->pos[1] = 400.0;
+                fb->vel[0] = 0;
+                fb->vel[1] = -6;
+                //b->color[0] = 1.0f;
+                //b->color[1] = 1.0f;
+                //b->color[2] = 1.0f;
+                g.nfb++;
+            }
+        }
+    }
 }
 
 void drawUmbrella()
@@ -1192,6 +1252,21 @@ void render()
     }
 	glEnable(GL_TEXTURE_2D);
     //------------------------------
+    //render fireballs
+    glDisable(GL_TEXTURE_2D);
+        for (int i = 0; i<g.nfb; i++) {
+            Fireball *fb = &g.fbs[i];
+            glColor3ub(255, 150, 0);
+            glBegin(GL_QUADS);
+            glTexCoord2f(0.0f, 1.0f); glVertex2i(fb->pos[0], fb->pos[1]+3.0f);
+            glTexCoord2f(0.0f, 0.0f); glVertex2i(fb->pos[0], fb->pos[1]);
+            glTexCoord2f(1.0f, 0.0f); glVertex2i(fb->pos[0]+3.0f, fb->pos[1]);
+            glTexCoord2f(1.0f, 1.0f); glVertex2i(fb->pos[0]+3.0f, 
+                                                            fb->pos[1]+3.0f);
+            glEnd();
+        }
+    glEnable(GL_TEXTURE_2D);
+
     //rendering drones -Jayden
     if (g.showDrone) {
         for (int i = 0; i < MAX_DRONES; i++) {
@@ -1203,7 +1278,7 @@ void render()
     //game over screen - Karen Santiago
     if (g.showend) {
         display_gameover(g.xres, g.yres);
-        display_credits(g.xres, g.yres);
+        //display_credits(g.xres, g.yres);
     }
 
 	glDisable(GL_TEXTURE_2D);
