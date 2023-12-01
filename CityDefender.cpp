@@ -1087,7 +1087,7 @@ void physics()
             }
         }
     }
-
+    //FIREBALL PHYSICS
     struct timespec ft;
     clock_gettime(CLOCK_REALTIME, &ft);
     int j = 0;
@@ -1111,14 +1111,14 @@ void physics()
         if (fts > 0.1) {
             timeCopy(&g.fireballTimer, &ft);
             if (g.nfb < MAX_FBS) {
-                //srand(time(0));
-                //int d = (rand() % 10);
+                srand(time(0));
+                int d = (rand() % 12);
                 Fireball *fb = &g.fbs[g.nfb];
                 timeCopy(&fb->timef, &ft);
                 //NEED TO GET DRONE POSITIONS AVAILABLE TO ACCESS
                 //pick random drone at a time for it to fall from
-                fb->pos[0] = 50.0;
-                fb->pos[1] = 400.0;
+                fb->pos[0] = g.drs[d].pos[0];
+                fb->pos[1] = g.drs[d].pos[1];
                 fb->vel[0] = 0;
                 fb->vel[1] = -6;
                 //b->color[0] = 1.0f;
