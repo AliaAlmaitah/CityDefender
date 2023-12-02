@@ -77,6 +77,16 @@ void display_gameover(int xres, int yres, int t)
 
     const char filename[] = "highscore.txt";
     const char pscore[] = "pscore.txt";
+    
+    ofstream clear;
+    clear.open(pscore);
+    if (clear.fail()) {
+        cout << "Error - opening" << pscore << endl;
+        exit(0);
+    }
+    clear << "";
+    clear.close();
+
     fstream fin;
     fstream score;
     fin.open(filename);
@@ -137,11 +147,6 @@ void display_gameover(int xres, int yres, int t)
 
     score.close();
     fin.close();
-
-    ofstream clear;
-    clear.open(pscore);
-    clear << "";
-    clear.close();
 }
 
 void new_highscore(const char filename[], char time2[])
