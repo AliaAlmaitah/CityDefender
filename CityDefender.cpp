@@ -53,8 +53,7 @@ extern int time_since_mouse_moved(const bool get, bool moved);
 extern int time_since_key_press(const bool get);
 extern double total_mouse_distance(double x, double y, const bool get);
 extern void render_drones(GLuint silhouette, float xpos, float ypos, float vel);
-extern void render_drones(GLuint silhouette, int xres);
-
+//extern void render_drones(GLuint silhouette, int xres);
 //defined types
 typedef double Flt;
 typedef double Vec[3];
@@ -171,6 +170,8 @@ class Drone {
 public:
     Vec pos;
     Vec vel;
+    bool alive=1;
+    int health=4;
 } drone;
 
 class Fireball {
@@ -203,7 +204,7 @@ public:
     struct timespec fireballTimer;
     Fireball *fbs;
     Bullet *barr;
-    Drone *drs;
+    Drone drs[MAX_DRONES];
     int dr_count; 
     char keys[65536];
 	int city;
@@ -224,7 +225,6 @@ public:
 	Global() {
 		logOpen();
         barr = new Bullet[MAX_BULLETS];
-        drs = new Drone[MAX_DRONES];
         fbs = new Fireball[MAX_FBS];
 		done=0;
 		xres=800;
@@ -254,7 +254,6 @@ public:
 	~Global() {
 		logClose();
         delete [] barr;
-        delete [] drs;
         delete [] fbs;
 	}
 } g;
@@ -387,7 +386,8 @@ int checkKeys(XEvent *e);
 void init();
 void physics(void);
 void render(void);
-
+extern void drone_damage(Drone* drs, Bullet* barr);
+extern void robot_damage(double rbtxpos, double rbtypos, Fireball* fbs, float *);
 
 int main()
 {
@@ -650,18 +650,15 @@ void init()
     int frm = rand() % 3 + 1;
     for(int i = 0; i < MAX_DRONES; i++)
     {
-        Drone *d = &g.drs[i];
-        d->pos[0] = xformation(frm, i+1); 
-        d->pos[1] = yformation(frm, i+1); 
-        d->pos[2] = 0;
-        d->vel[0] = 0;
-        d->vel[1] = 0;
-        d->vel[2] = 0;
+        //Drone *d = &g.drs[i];
+        g.drs[i].pos[0] = xformation(frm, i+1); 
+        g.drs[i].pos[1] = yformation(frm, i+1); 
+        g.drs[i].pos[2] = 0;
+        g.drs[i].vel[0] = 0;
+        g.drs[i].vel[1] = 0;
+        g.drs[i].vel[2] = 0;
 
     }
-    //JAYDEN ADDED FOR DRONE
-    //MakeVector(200.0, 400.0, 0.0, drone.pos);
-    //MakeVector(0.0, 0.0, 0.0, drone.vel);
 }
 
 void checkMouse(XEvent *e)
@@ -1050,7 +1047,7 @@ void physics()
         moveLeft(&bigfoot.pos[0]);
     if (g.keys[XK_d])
         moveRight(&bigfoot.pos[0], g.xres);
-        
+    //bullet physics    
     struct timespec bt;
     clock_gettime(CLOCK_REALTIME, &bt);
     int i = 0;
@@ -1115,19 +1112,20 @@ void physics()
                 int d = (rand() % 12);
                 Fireball *fb = &g.fbs[g.nfb];
                 timeCopy(&fb->timef, &ft);
-                //NEED TO GET DRONE POSITIONS AVAILABLE TO ACCESS
                 //pick random drone at a time for it to fall from
-                fb->pos[0] = g.drs[d].pos[0];
-                fb->pos[1] = g.drs[d].pos[1];
-                fb->vel[0] = 0;
-                fb->vel[1] = -6;
-                //b->color[0] = 1.0f;
-                //b->color[1] = 1.0f;
-                //b->color[2] = 1.0f;
-                g.nfb++;
+                if (g.drs[d].alive) {
+                    fb->pos[0] = g.drs[d].pos[0];
+                    fb->pos[1] = g.drs[d].pos[1];
+                    fb->vel[0] = 0;
+                    fb->vel[1] = -6;
+                    g.nfb++;
+                }
             }
         }
     }
+    //ADDED BY JAYDEN
+    drone_damage(g.drs, g.barr);
+    robot_damage(bigfoot.pos[0], bigfoot.pos[1], g.fbs, &g.health);
 }
 
 void drawUmbrella()
@@ -1260,11 +1258,11 @@ void render()
             Fireball *fb = &g.fbs[i];
             glColor3ub(255, 150, 0);
             glBegin(GL_QUADS);
-            glTexCoord2f(0.0f, 1.0f); glVertex2i(fb->pos[0], fb->pos[1]+3.0f);
+            glTexCoord2f(0.0f, 1.0f); glVertex2i(fb->pos[0], fb->pos[1]+4.0f);
             glTexCoord2f(0.0f, 0.0f); glVertex2i(fb->pos[0], fb->pos[1]);
-            glTexCoord2f(1.0f, 0.0f); glVertex2i(fb->pos[0]+3.0f, fb->pos[1]);
-            glTexCoord2f(1.0f, 1.0f); glVertex2i(fb->pos[0]+3.0f, 
-                                                            fb->pos[1]+3.0f);
+            glTexCoord2f(1.0f, 0.0f); glVertex2i(fb->pos[0]+4.0f, fb->pos[1]);
+            glTexCoord2f(1.0f, 1.0f); glVertex2i(fb->pos[0]+4.0f, 
+                                                            fb->pos[1]+4.0f);
             glEnd();
         }
     glEnable(GL_TEXTURE_2D);
@@ -1272,11 +1270,13 @@ void render()
     //rendering drones -Jayden
     if (g.showDrone) {
         for (int i = 0; i < MAX_DRONES; i++) {
-            Drone *d = &g.drs[i];
-            render_drones(g.droneSilhouetteTexture, d->pos[0], d->pos[1], d->vel[0]);
+            //Drone *d = &g.drs[i];
+            if (g.drs[i].alive) {
+                render_drones(g.droneSilhouetteTexture, g.drs[i].pos[0], g.drs[i].pos[1], g.drs[i].vel[0]);
+            }
         }
     }
-    // end of jaydens changes
+    
     //game over screen - Karen Santiago
     if (g.showend) {
         display_gameover(g.xres, g.yres);
@@ -1312,7 +1312,7 @@ void render()
     //display the game over screen when health gets to 0
     if (g.health == 0) {
         display_gameover(g.xres, g.yres);
-        display_credits(g.xres, g.yres);
+       // display_credits(g.xres, g.yres);
     }
 	//
 	//
