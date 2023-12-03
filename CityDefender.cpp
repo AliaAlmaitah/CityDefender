@@ -204,7 +204,8 @@ public:
     Fireball *fbs;
     Bullet *barr;
     Drone *drs;
-    int dr_count; 
+    int dr_count;
+    int frm; 
     char keys[65536];
 	int city;
 	int silhouette;
@@ -223,6 +224,8 @@ public:
     bool statistics;
 	Global() {
 		logOpen();
+        srand(time(NULL));
+        frm = rand() % 3 + 1;
         barr = new Bullet[MAX_BULLETS];
         drs = new Drone[MAX_DRONES];
         fbs = new Fireball[MAX_FBS];
@@ -646,13 +649,11 @@ void init()
 	umbrella.shape = UMBRELLA_FLAT;
 	MakeVector(300.0,80.0,0.0, bigfoot.pos);
 	MakeVector(6.0,0.0,0.0, bigfoot.vel);
-    srand(time(NULL));
-    int frm = rand() % 3 + 1;
     for(int i = 0; i < MAX_DRONES; i++)
     {
         Drone *d = &g.drs[i];
-        d->pos[0] = xformation(frm, i+1); 
-        d->pos[1] = yformation(frm, i+1); 
+        d->pos[0] = xformation(g.frm, i+1); 
+        d->pos[1] = yformation(g.frm, i+1); 
         d->pos[2] = 0;
         d->vel[0] = 0;
         d->vel[1] = 0;
@@ -1125,6 +1126,43 @@ void physics()
                 //b->color[1] = 1.0f;
                 //b->color[2] = 1.0f;
                 g.nfb++;
+            }
+        }
+        static bool mvm_left = true;
+        int dis;
+        switch (g.frm) {
+            case 1:
+                if (mvm_left) {
+                    dis = g.drs[0].pos[0];
+                } else {
+                    dis = g.xres - g.drs[5].pos[0];
+                }
+                break;
+            case 2:
+                if (mvm_left) {
+                    dis = g.drs[2].pos[0];
+                } else {
+                    dis = g.xres - g.drs[4].pos[0];
+                }
+                break;
+            case 3:
+                if (mvm_left) {
+                    dis = g.drs[7].pos[0];
+                } else {
+                    dis = g.xres - g.drs[11].pos[0];
+                }
+                break;
+        }
+        if (dis < 50) {
+            mvm_left = !mvm_left;
+        }
+        if (mvm_left) {
+            for (int i = 0; i < MAX_DRONES; i++) {
+                g.drs[i].pos[0] -= 2; 
+            }
+        } else {
+            for (int i = 0; i < MAX_DRONES; i++) {
+                g.drs[i].pos[0] += 2; 
             }
         }
     }
