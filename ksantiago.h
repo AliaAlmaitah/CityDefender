@@ -4,7 +4,8 @@
 //Karen's CityDefender project files
 
 //called from main program.
-extern void display_gameover(int xres, int yres, int t);
+extern void display_gameover(int xres, int yres);//, int t);
+extern void display_scores(int xres, int yres, int t);
 extern void display_credits(int xres, int yres);
 extern int total_physics_function_calls(const bool get);
 extern int total_render_function_calls(const bool get);
