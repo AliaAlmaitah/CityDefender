@@ -10,12 +10,39 @@
 #include <ctime>
 #include <vector>
 
+//NOTE TO SELF THINGS I CAN ADD
+//background pic to start screen
+//drone damage
+//cooler looking fireballs
+//powerups
+
 typedef double Vec[3];
+
+class Bullet {
+public:
+    Vec pos;
+    Vec vel;
+    float color[3];
+    struct timespec time;
+public:
+    Bullet() {}
+};
 
 class Drone {
 public:
     Vec pos;
     Vec vel;
+    bool alive=1;
+    int health=4;
+};
+
+class Fireball {
+public:
+    Vec pos;
+    Vec vel;
+    struct timespec timef;
+public:
+    Fireball() {}
 };
 
 void display_border(int xres, int yres)
@@ -84,6 +111,9 @@ int time_since_mouse_moved(const bool get, bool moved)
 }
 void render_drones(GLuint silhouette, float xpos, float ypos, float vel)
 {
+    //commented out parts indicate functionality before having to move some
+    //to the main file for other people to use
+
     float droneWid = 30.0;
     float droneHei = 15.0;
     //Drone drones[11];
@@ -106,6 +136,7 @@ void render_drones(GLuint silhouette, float xpos, float ypos, float vel)
             glAlphaFunc(GL_GREATER, 0.0f);
             glColor4ub(255,255,255,255);
         glBegin(GL_QUADS);
+        //if (alive) {
             if (vel > 0.0) {
                 glTexCoord2f(0.0f, 1.0f); glVertex2i(-droneWid,-droneHei);
                 glTexCoord2f(0.0f, 0.0f); glVertex2i(-droneWid, droneHei);
@@ -117,7 +148,44 @@ void render_drones(GLuint silhouette, float xpos, float ypos, float vel)
                 glTexCoord2f(0.0f, 0.0f); glVertex2i( droneWid, droneHei);
                 glTexCoord2f(0.0f, 1.0f); glVertex2i( droneWid,-droneHei);
             }
+        //}
         glEnd();
         glPopMatrix();
         //d++;
+}
+void drone_damage(Drone* drs, Bullet* barr)
+{
+    int max_dr = 12;
+    int max_bul = 11;
+    for (int dr=0; dr<max_dr; dr++) {
+        for (int bul=0; bul<max_bul; bul++) {
+            if ((barr[bul].pos[0] > drs[dr].pos[0]-15.0)&&
+                                (barr[bul].pos[0] < drs[dr].pos[0]+15.0)) {
+                if ((barr[bul].pos[1] > drs[dr].pos[1]-7.0)&&
+                                (barr[bul].pos[1] < drs[dr].pos[1]+7.0)) {
+                    //damage to drone and update alive if needed
+                    drs[dr].health -= 1;
+                    if (drs[dr].health == 0) {
+                        drs[dr].alive = 0;
+                    }
+                } 
+            }
+        }
+    }
+}
+void robot_damage(double rbtxpos, double rbtypos, Fireball* fbs, float *health)
+{
+    double lowerx = rbtxpos - 25.0;
+    double upperx = rbtxpos + 25.0;
+    double lowery = rbtypos - 5.0;
+    double uppery = rbtypos + 5.0;
+    int max_fb = 11;
+    for (int fb=0; fb<max_fb; fb++) {
+        if (*health != 0) {
+            if (((fbs[fb].pos[0] > lowerx)&&(fbs[fb].pos[0] < upperx))
+                    && ((fbs[fb].pos[1] < uppery)&&(fbs[fb].pos[1] > lowery))) {
+            *health -= 5.0;
+            }
+        }
+    }
 }
