@@ -4,6 +4,16 @@
 //author:  Gordon Griesel
 //date:    2013 to 2021
 //
+//to do list:
+// Level system(what's different between levels... are levels by time or are they by how many drones have been shot down).
+//
+// Start menu w/ options (sound, background, character options?) - Karen
+//
+// Power-ups
+//
+//
+//This program demonstrates the use of OpenGL and XWindows
+//
 //Texture maps are displayed.
 //Press B to see bigfoot roaming his forest.
 //
@@ -12,6 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <cstdlib>
 #include <time.h>
 #include <math.h>
 #include <X11/Xlib.h>
@@ -28,20 +39,21 @@
 #include "bestrada.h"
 #include "jcanales.h"
 #include "ksantiago.h"
-/*
+
 extern void display_border(int xres, int yres);
 extern void display_hp(float health, int xres, int yres);
 extern void Test_Robot(double *, double *);
 extern void moveRight(double *, int );
 extern void moveLeft(double * );
+extern void Controls(int ,int );
+extern float xformation(int , int );
+extern float yformation(int , int );
 extern int total_running_time(const bool get);
 extern int time_since_mouse_moved(const bool get, bool moved);
 extern int time_since_key_press(const bool get);
 extern double total_mouse_distance(double x, double y, const bool get);
-
-
-extern void render_drones(GLuint silhouette, int xres);
-*/
+extern void render_drones(GLuint silhouette, float xpos, float ypos, float vel);
+//extern void render_drones(GLuint silhouette, int xres);
 //defined types
 typedef double Flt;
 typedef double Vec[3];
@@ -60,6 +72,7 @@ typedef Flt	Matrix[4][4];
 const float timeslice = 1.0f;
 const float gravity = -0.2f;
 const int MAX_BULLETS = 11;
+const int MAX_DRONES = 12;
 const int MAX_FBS = 11;
 #define ALPHA 1
 
@@ -152,6 +165,15 @@ public:
     Bullet() {}
 };
 
+//add drone class
+class Drone {
+public:
+    Vec pos;
+    Vec vel;
+    bool alive=1;
+    int health=4;
+} drone;
+
 class Fireball {
 public:
     Vec pos;
@@ -176,11 +198,14 @@ public:
     //used for robot test
     int showRobot;
     int nbullet;
+    bool inst;
     int nfb;
     struct timespec bulletTimer;
     struct timespec fireballTimer;
     Fireball *fbs;
     Bullet *barr;
+    Drone drs[MAX_DRONES];
+    int dr_count; 
     char keys[65536];
 	int city;
 	int silhouette;
@@ -208,6 +233,7 @@ public:
         showRobot = 0; //set to 0
         nbullet = 0;
 		city=1;
+        inst = false;
 		silhouette=1;
 		trees=0;
 		showRain=0;
@@ -237,13 +263,6 @@ public:
 	Vec pos;
 	Vec vel;
 } bigfoot;
-
-//add drone class
-class Drone {
-public:
-    Vec pos;
-    Vec vel;
-} drone;
 
 class Raindrop {
 public:
@@ -367,7 +386,8 @@ int checkKeys(XEvent *e);
 void init();
 void physics(void);
 void render(void);
-
+extern void drone_damage(Drone* drs, Bullet* barr);
+extern void robot_damage(double rbtxpos, double rbtypos, Fireball* fbs, float *);
 
 int main()
 {
@@ -425,6 +445,10 @@ int main()
             render();
         }
 		x11.swapBuffers();
+        if (g.inst) {
+            sleep(3);
+            g.inst = false;
+        }
 	}
 	//cleanupXWindows();
 	cleanup_fonts();
@@ -622,9 +646,19 @@ void init()
 	umbrella.shape = UMBRELLA_FLAT;
 	MakeVector(300.0,80.0,0.0, bigfoot.pos);
 	MakeVector(6.0,0.0,0.0, bigfoot.vel);
-    //JAYDEN ADDED FOR DRONE
-    //MakeVector(200.0, 400.0, 0.0, drone.pos);
-    //MakeVector(0.0, 0.0, 0.0, drone.vel);
+    srand(time(NULL));
+    int frm = rand() % 3 + 1;
+    for(int i = 0; i < MAX_DRONES; i++)
+    {
+        //Drone *d = &g.drs[i];
+        g.drs[i].pos[0] = xformation(frm, i+1); 
+        g.drs[i].pos[1] = yformation(frm, i+1); 
+        g.drs[i].pos[2] = 0;
+        g.drs[i].vel[0] = 0;
+        g.drs[i].vel[1] = 0;
+        g.drs[i].vel[2] = 0;
+
+    }
 }
 
 void checkMouse(XEvent *e)
@@ -689,6 +723,9 @@ int checkKeys(XEvent *e)
 			//	bigfoot.pos[0] = -250.0;
 			//}
 			break;
+        case XK_i:
+            g.inst = true;
+            break;
         case XK_z:
             //Robot testing key -Bryan
             g.showRobot = !g.showRobot;
@@ -1010,10 +1047,11 @@ void physics()
         moveLeft(&bigfoot.pos[0]);
     if (g.keys[XK_d])
         moveRight(&bigfoot.pos[0], g.xres);
-        
+    //bullet physics    
     struct timespec bt;
     clock_gettime(CLOCK_REALTIME, &bt);
     int i = 0;
+
     while (i < g.nbullet) {
         Bullet *b = &g.barr[i];
         double ts = timeDiff(&b->time, &bt);
@@ -1030,7 +1068,7 @@ void physics()
         struct timespec bt;
         clock_gettime(CLOCK_REALTIME, &bt);
         double ts = timeDiff(&g.bulletTimer, &bt);
-        if (ts > 0.1) {
+        if (ts > 0.5) {
             timeCopy(&g.bulletTimer, &bt);
             if (g.nbullet < MAX_BULLETS) {
                 Bullet *b = &g.barr[g.nbullet];
@@ -1046,7 +1084,7 @@ void physics()
             }
         }
     }
-
+    //FIREBALL PHYSICS
     struct timespec ft;
     clock_gettime(CLOCK_REALTIME, &ft);
     int j = 0;
@@ -1070,23 +1108,24 @@ void physics()
         if (fts > 0.1) {
             timeCopy(&g.fireballTimer, &ft);
             if (g.nfb < MAX_FBS) {
-                //srand(time(0));
-                //int d = (rand() % 10);
+                srand(time(0));
+                int d = (rand() % 12);
                 Fireball *fb = &g.fbs[g.nfb];
                 timeCopy(&fb->timef, &ft);
-                //NEED TO GET DRONE POSITIONS AVAILABLE TO ACCESS
                 //pick random drone at a time for it to fall from
-                fb->pos[0] = 50.0;
-                fb->pos[1] = 400.0;
-                fb->vel[0] = 0;
-                fb->vel[1] = -6;
-                //b->color[0] = 1.0f;
-                //b->color[1] = 1.0f;
-                //b->color[2] = 1.0f;
-                g.nfb++;
+                if (g.drs[d].alive) {
+                    fb->pos[0] = g.drs[d].pos[0];
+                    fb->pos[1] = g.drs[d].pos[1];
+                    fb->vel[0] = 0;
+                    fb->vel[1] = -6;
+                    g.nfb++;
+                }
             }
         }
     }
+    //ADDED BY JAYDEN
+    drone_damage(g.drs, g.barr);
+    robot_damage(bigfoot.pos[0], bigfoot.pos[1], g.fbs, &g.health);
 }
 
 void drawUmbrella()
@@ -1159,6 +1198,7 @@ void render()
 			glTexCoord2f(1.0f, 1.0f); glVertex2i(g.xres, 0);
 		glEnd();
 	}
+
 	if (g.showRobot) {
 		    glPushMatrix();
 		    glTranslatef(bigfoot.pos[0], bigfoot.pos[1], bigfoot.pos[2]);
@@ -1218,20 +1258,25 @@ void render()
             Fireball *fb = &g.fbs[i];
             glColor3ub(255, 150, 0);
             glBegin(GL_QUADS);
-            glTexCoord2f(0.0f, 1.0f); glVertex2i(fb->pos[0], fb->pos[1]+3.0f);
+            glTexCoord2f(0.0f, 1.0f); glVertex2i(fb->pos[0], fb->pos[1]+4.0f);
             glTexCoord2f(0.0f, 0.0f); glVertex2i(fb->pos[0], fb->pos[1]);
-            glTexCoord2f(1.0f, 0.0f); glVertex2i(fb->pos[0]+3.0f, fb->pos[1]);
-            glTexCoord2f(1.0f, 1.0f); glVertex2i(fb->pos[0]+3.0f, 
-                                                            fb->pos[1]+3.0f);
+            glTexCoord2f(1.0f, 0.0f); glVertex2i(fb->pos[0]+4.0f, fb->pos[1]);
+            glTexCoord2f(1.0f, 1.0f); glVertex2i(fb->pos[0]+4.0f, 
+                                                            fb->pos[1]+4.0f);
             glEnd();
         }
     glEnable(GL_TEXTURE_2D);
 
     //rendering drones -Jayden
     if (g.showDrone) {
-        render_drones(g.droneSilhouetteTexture, g.xres);
+        for (int i = 0; i < MAX_DRONES; i++) {
+            //Drone *d = &g.drs[i];
+            if (g.drs[i].alive) {
+                render_drones(g.droneSilhouetteTexture, g.drs[i].pos[0], g.drs[i].pos[1], g.drs[i].vel[0]);
+            }
+        }
     }
-    // end of jaydens changes
+    
     //game over screen - Karen Santiago
     if (g.showend) {
         int time = total_running_time(true);
@@ -1281,6 +1326,7 @@ void render()
     ggprint8b(&r, 16, c, "G - Game Over Screen");
 	ggprint8b(&r, 16, c, "Z - Character");
 	ggprint8b(&r, 16, c, "C - Drone");
+	ggprint8b(&r, 16, c, "I - Controls");
 //	ggprint8b(&r, 16, c, "S - Silhouette");
 //	ggprint8b(&r, 16, c, "T - Trees");
 //	ggprint8b(&r, 16, c, "U - Umbrella");
@@ -1317,6 +1363,8 @@ void render()
          ggprint13(&r, 16, 0x00ffff00, "mouse distance: %fi",
                                              total_mouse_distance(0, 0, true));
      }
-
+    if  (g.inst) {
+        Controls(g.xres, g.yres);
+    }
 }
 
