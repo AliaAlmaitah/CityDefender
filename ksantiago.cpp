@@ -66,14 +66,26 @@ int total_render_function_calls(const bool get)
 }
 
 //call highscore and player's score
-void display_gameover(int xres, int yres, int t)
+void display_gameover(int xres, int yres) //, int t)
 {
-    static int time = t;
+    //static int time = t;
     Rect r;
     r.bot = yres/2;
     r.left = xres/2 - 125;
     r.center = 0;
     ggprint40(&r, 0, 0x00ff2400, "Game Over");
+    r.bot -= 20;
+    r.left += 20;
+    ggprint16(&r, 0, 0x00ff2400, "Better luck next time");
+}
+
+void display_scores(int xres, int yres, int t) {
+    static int time = t;
+    Rect r;
+    r.bot = yres/2;
+    r.left = xres/2 - 175; //125;
+    r.center = 0;
+    ggprint40(&r, 0, 0x00ff2400, "You Saved the City!!!");
 
     const char filename[] = "highscore.txt";
     const char pscore[] = "pscore.txt";
@@ -116,7 +128,14 @@ void display_gameover(int xres, int yres, int t)
     
     //if player's score is higher than high score, put into file.
     static int highscore = atoi(line);
-    if (time > highscore) {
+    int h;
+    if (highscore == 0) {
+        h = 1000000000;
+    } else {
+        h = highscore;
+    } 
+    if (time < h) {
+    //if (time < highscore) {
         new_highscore(filename, time2);
 
         r.bot = yres/2 + 80;
