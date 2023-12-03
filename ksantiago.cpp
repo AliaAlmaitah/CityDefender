@@ -24,7 +24,7 @@ void startscreen(int xres, int yres) //GLuint *cityTexture)
     ggprint40(&r, 0, 0x00ffffff, "City Defender");
     r.bot -= 20;
     r.left = (xres/2) - 50;
-    ggprint12(&r, 0, 0x00ffffff, "Press 'S' to play.");
+    ggprint12(&r, 0, 0x00ffffff, "Press 'X' to play.");
 }
 
 int start(int start_game, XEvent *e, int xres, int yres) 
@@ -32,7 +32,7 @@ int start(int start_game, XEvent *e, int xres, int yres)
     int key = (XLookupKeysym(&e->xkey, 0) & 0x0000ffff);
     startscreen(xres, yres);
     switch (key) {
-        case XK_s:
+        case XK_x:
             start_game = 1;
             return start_game;
             break;
