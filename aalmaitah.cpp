@@ -9,7 +9,15 @@
 
 
 #include <ctime>
+//#include "aalmaitah.h"
+//#include <cstdio>
+//#include <unistd.h>
+//#include <ctime>
 
+//#ifdef USE_OPENAL_SOUND
+//#include <AL/al.h>
+//#include <AL/alut.h>
+//#endif
 struct GLData {
     bool statistics = false;
 };
