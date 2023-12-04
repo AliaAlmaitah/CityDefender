@@ -171,7 +171,7 @@ public:
     Vec pos;
     Vec vel;
     bool alive=1;
-    int health=4;
+    int health=3;
 } drone;
 
 class Fireball {
@@ -1311,11 +1311,12 @@ void render()
         for (int i = 0; i < MAX_DRONES; i++) {
             //Drone *d = &g.drs[i];
             if (g.drs[i].alive) {
-                render_drones(g.droneSilhouetteTexture, g.drs[i].pos[0], g.drs[i].pos[1], g.drs[i].vel[0]);
+                render_drones(g.droneSilhouetteTexture, g.drs[i].pos[0], 
+                                            g.drs[i].pos[1], g.drs[i].vel[0]);
             } 
             else {
                 dead += 1;
-                if (dead == MAX_DRONES) {
+                if ((dead == MAX_DRONES) && (g.health > 0.0)) {
                     int time = total_running_time(true);
                     display_scores(g.xres, g.yres, time);
                     display_credits(g.xres, g.yres);
@@ -1363,6 +1364,7 @@ void render()
         //int time = total_running_time(true);
         display_gameover(g.xres, g.yres);//, time);
         display_credits(g.xres, g.yres);
+        display_border(g.xres, g.yres);
     }
 	//
 	//

@@ -33,7 +33,7 @@ public:
     Vec pos;
     Vec vel;
     bool alive=1;
-    int health=4;
+    int health=3;
 };
 
 class Fireball {
@@ -49,7 +49,7 @@ void display_border(int xres, int yres)
 {
 	//draw a border around the window to indicate your test mode
 	int b = 50;
-	glColor3f(0.0f, 1.0f, 0.0f);
+	glColor3f(1.0f, 0.0f, 0.0f);
 	glPushMatrix();
 	glBegin(GL_TRIANGLE_STRIP);
 		glVertex2i(0,	0);
@@ -153,6 +153,21 @@ void render_drones(GLuint silhouette, float xpos, float ypos, float vel)
         glPopMatrix();
         //d++;
 }
+bool check_drone_under(Drone* drs, double drxpos, double drypos)
+{
+    //if there are no drones under this drone (xpos are same ypos is lower)
+    //drone under also has to be alive
+    //return 1 if there is under
+    int max_drs = 12;
+    for (int i=0; i<max_drs; i++) {
+        if ((drs[i].pos[0] == drxpos) && (drs[i].pos[1] < drypos)) {
+            if (drs[i].alive) {
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
 void drone_damage(Drone* drs, Bullet* barr)
 {
     int max_dr = 12;
@@ -164,11 +179,15 @@ void drone_damage(Drone* drs, Bullet* barr)
                 if ((barr[bul].pos[1] > drs[dr].pos[1]-7.0)&&
                                 (barr[bul].pos[1] < drs[dr].pos[1]+7.0)) {
                     //damage to drone and update alive if needed
-                    drs[dr].health -= 1;
-                    if (drs[dr].health == 0) {
-                        drs[dr].alive = 0;
+                    bool under = check_drone_under(drs, drs[dr].pos[0],
+                                                            drs[dr].pos[1]);
+                    if (!under) {
+                        drs[dr].health -= 1;
+                        if (drs[dr].health == 0) {
+                            drs[dr].alive = 0;
+                        }
                     }
-                } 
+                }
             }
         }
     }
