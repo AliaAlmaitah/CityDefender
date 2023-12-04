@@ -138,7 +138,7 @@ void display_scores(int xres, int yres, int t) {
         new_highscore(filename, time2);
 
         r.bot = yres/2 + 80;
-        r.left = xres/2 - 160;
+        r.left = xres/2 - 140;
         ggprint40(&r, 0, 0x00ff2400, "New High Score!");
         r.left = xres/2 - 90;
         r.bot = yres/2 - 20;
