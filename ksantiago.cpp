@@ -135,7 +135,6 @@ void display_scores(int xres, int yres, int t) {
         h = highscore;
     } 
     if (time < h) {
-    //if (time < highscore) {
         new_highscore(filename, time2);
 
         r.bot = yres/2 + 80;
@@ -185,16 +184,20 @@ void new_highscore(const char filename[], char time2[])
 void display_credits(int xres, int yres)
 {
     Rect r;
+    //If we subtract by 150, we will have credits at bottom.
     r.bot = (yres/2) - 75;
     r.left = (xres/2) - 60;
     r.center = 0;
     ggprint16(&r, 0, 0x00ffffff, "Credits:");
     r.bot -= 20;
-    ggprint13(&r, 0, 0x00ffffff, "Alia Al-Maitah");
+    r.left -= 140;
+    ggprint13(&r, 0, 0x00ffffff, "Alia Al-Maitah - Sound");
     r.bot -= 20;
-    ggprint13(&r, 0, 0x00ffffff, "Jayden Canales");
+    ggprint13(&r, 0, 0x00ffffff, 
+            "Jayden Canales - Drones, Robot Damage, and Health Bar");
     r.bot -= 20;
-    ggprint13(&r, 0, 0x00ffffff, "Bryan Estrada");
+    ggprint13(&r, 0, 0x00ffffff, "Bryan Estrada -  Movement and Graphics");
     r.bot -= 20;
-    ggprint13(&r, 0, 0x00ffffff, "Karen Santiago");
+    ggprint13(&r, 0, 0x00ffffff, 
+            "Karen Santiago - Start Screen, End Screens, and Credits");
 }
