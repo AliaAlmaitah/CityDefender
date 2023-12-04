@@ -9,6 +9,15 @@ extern void display_border(int xres, int yres);
 extern int time_since_key_press(const bool get);
 extern void handleKeyPressEvent();
 
+#ifdef USE_OPENAL_SOUND
+extern void playOpenALSample();
+//extern void toggleSound();  // Declaration for toggleSound
+//void cleanupOpenAL();
+//void playshootSound();
+
+#endif
+
+
 //class alia {
  //   int abc;
 //};
