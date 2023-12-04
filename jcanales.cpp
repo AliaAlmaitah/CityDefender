@@ -3,12 +3,13 @@
  *   Purpose: Software Engineering Project source file.
  *   Author: Jayden Canales
  *   Created: September 25, 2023
- *   Last Modified:
+ *   Last Modified: December 4, 2023
 */
 #include "fonts.h"
 #include <GL/glx.h>
 #include <ctime>
 #include <vector>
+#include <cstdlib>
 
 //NOTE TO SELF THINGS I CAN ADD
 //background pic to start screen
@@ -206,5 +207,57 @@ void robot_damage(double rbtxpos, double rbtypos, Fireball* fbs, float *health)
             *health -= 5.0;
             }
         }
+    }
+}
+void game_instructions(int xres, int yres)
+{
+    Rect r;
+    r.bot = (yres/3)+30;
+    r.left = (xres/2) - 125;
+    r.center = 0;
+    ggprint10(&r, 0, 0x8fe2, "Save the city by destroying all the drones");
+    r.bot -= 15;
+    r.left = (xres/2) - 130;
+    ggprint10(&r, 0, 0x8fe2,
+                            "with your lazer in the shortest amount of time.");
+    r.bot -= 15;
+    r.left = (xres/2) - 135;
+    ggprint10(&r, 0, 0x8fe2,
+                            "Remember to dodge their fireballs to stay alive.");
+    r.bot -= 15;
+    r.left = (xres/2) - 140;
+    ggprint10(&r, 0, 0x8fe2,
+                            "Can you beat your high-score and save the city?");
+
+    //top line
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glLineWidth(8.0);
+    glBegin(GL_LINES);
+    glVertex2i(0, (yres/3)*2);
+    glVertex2i(xres, (yres/3)*2);
+    glEnd();
+    glLineWidth(1.0f);
+
+    //bottom line
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glLineWidth(8.0);
+    glBegin(GL_LINES);
+        glVertex2i(0, (yres/4));
+        glVertex2i(xres, (yres/4));
+    glEnd();
+    glLineWidth(1.0f);
+
+    srand(777);
+    for (float i = 0.0; i < xres; i+=40.0) {
+        float height = rand() % 100 + 50;
+        float width = 40.0;
+        float ystart = (2.0/3.0)*yres;
+        glBegin(GL_QUADS);
+            glColor3f(1.0f, 1.0f, 1.0f);
+            glVertex2f(i, ystart);
+            glVertex2f(i + width, ystart);
+            glVertex2f(i + width, ystart + height);
+            glVertex2f(i, ystart + height);
+        glEnd();
     }
 }
