@@ -53,6 +53,9 @@ extern int time_since_mouse_moved(const bool get, bool moved);
 extern int time_since_key_press(const bool get);
 extern double total_mouse_distance(double x, double y, const bool get);
 extern void render_drones(GLuint silhouette, float xpos, float ypos, float vel);
+//sound
+//extern void  playOpenALSample();
+
 //extern void render_drones(GLuint silhouette, int xres);
 //defined types
 typedef double Flt;
@@ -397,6 +400,9 @@ int main()
 {
 	initOpengl();
 	init();
+	//sound
+	//std::atexit(cleanupOpenAL);
+
 	clock_gettime(CLOCK_REALTIME, &timePause);
 	clock_gettime(CLOCK_REALTIME, &timeStart);
     total_running_time(false);
@@ -457,6 +463,8 @@ int main()
 	}
 	//cleanupXWindows();
 	cleanup_fonts();
+	//sound 
+	//cleanupOpenAL();
 	return 0;
 }
 
@@ -728,6 +736,12 @@ int checkKeys(XEvent *e)
         case XK_i:
             g.inst = true;
             break;
+	//sound
+	/*case XK_m:
+            //sound on and off
+            toggleSound();
+            break;*/
+
         case XK_z:
             //Robot testing key -Bryan
             g.showRobot = !g.showRobot;
@@ -1083,6 +1097,8 @@ void physics()
                 b->color[1] = 1.0f;
                 b->color[2] = 1.0f;
                 g.nbullet++;
+		//Sound
+		//playshootSound(); 
             }
         }
     }
