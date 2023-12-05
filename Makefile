@@ -1,6 +1,6 @@
 CFLAGS = -I ./include
-##LIB    = ./lib/fmod/libfmodex64.so
-LFLAGS = -lrt -lX11 -lGLU -lGL -lm #-lXrandr
+##LIB = ./lib/fmod/libfmodex64.so
+LFLAGS = -lrt -lX11 -lGLU -lGL -lm -lopenal -lalut #-lXrandr
 
 all: CityDefender
 
@@ -10,4 +10,3 @@ CityDefender: CityDefender.cpp log.cpp jcanales.h jcanales.cpp bestrada.h bestra
 clean:
 	rm -f CityDefender
 	rm -f *.o
-
