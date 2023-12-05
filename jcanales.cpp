@@ -154,12 +154,12 @@ void render_drones(GLuint silhouette, float xpos, float ypos, float vel)
         glPopMatrix();
         //d++;
 }
-bool check_drone_under(Drone* drs, double drxpos, double drypos)
+bool check_drone_under(Drone* drs, double drxpos, double drypos, int max_drs)
 {
     //if there are no drones under this drone (xpos are same ypos is lower)
     //drone under also has to be alive
     //return 1 if there is under
-    int max_drs = 12;
+    //int max_drs = 12;
     for (int i=0; i<max_drs; i++) {
         if ((drs[i].pos[0] == drxpos) && (drs[i].pos[1] < drypos)) {
             if (drs[i].alive) {
@@ -169,19 +169,19 @@ bool check_drone_under(Drone* drs, double drxpos, double drypos)
     }
     return 0;
 }
-void drone_damage(Drone* drs, Bullet* barr)
+void drone_damage(Drone* drs, Bullet* barr, int max_drs, int max_buls)
 {
-    int max_dr = 12;
-    int max_bul = 11;
-    for (int dr=0; dr<max_dr; dr++) {
-        for (int bul=0; bul<max_bul; bul++) {
+    //int max_dr = 12;
+    //int max_bul = 11;
+    for (int dr=0; dr<max_drs; dr++) {
+        for (int bul=0; bul<max_buls; bul++) {
             if ((barr[bul].pos[0] > drs[dr].pos[0]-15.0)&&
                                 (barr[bul].pos[0] < drs[dr].pos[0]+15.0)) {
                 if ((barr[bul].pos[1] > drs[dr].pos[1]-7.0)&&
                                 (barr[bul].pos[1] < drs[dr].pos[1]+7.0)) {
                     //damage to drone and update alive if needed
                     bool under = check_drone_under(drs, drs[dr].pos[0],
-                                                            drs[dr].pos[1]);
+                                                      drs[dr].pos[1], max_drs);
                     if (!under) {
                         drs[dr].health -= 1;
                         if (drs[dr].health == 0) {
@@ -193,14 +193,14 @@ void drone_damage(Drone* drs, Bullet* barr)
         }
     }
 }
-void robot_damage(double rbtxpos, double rbtypos, Fireball* fbs, float *health)
+void robot_damage(double rbtxpos, double rbtypos, Fireball* fbs, float *health, int max_fbs)
 {
     double lowerx = rbtxpos - 25.0;
     double upperx = rbtxpos + 25.0;
     double lowery = rbtypos - 5.0;
     double uppery = rbtypos + 5.0;
-    int max_fb = 11;
-    for (int fb=0; fb<max_fb; fb++) {
+    //int max_fb = 11;
+    for (int fb=0; fb<max_fbs; fb++) {
         if (*health != 0) {
             if (((fbs[fb].pos[0] > lowerx)&&(fbs[fb].pos[0] < upperx))
                     && ((fbs[fb].pos[1] < uppery)&&(fbs[fb].pos[1] > lowery))) {

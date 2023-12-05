@@ -393,8 +393,8 @@ int checkKeys(XEvent *e);
 void init();
 void physics(void);
 void render(void);
-extern void drone_damage(Drone* drs, Bullet* barr);
-extern void robot_damage(double rbtxpos, double rbtypos, Fireball* fbs, float *);
+extern void drone_damage(Drone* drs, Bullet* barr, int max_drs, int max_buls);
+extern void robot_damage(double rbtxpos, double rbtypos, Fireball* fbs, float *, int max_fbs);
 
 int main()
 {
@@ -1179,8 +1179,8 @@ void physics()
         }
     }
     //ADDED BY JAYDEN
-    drone_damage(g.drs, g.barr);
-    robot_damage(bigfoot.pos[0], bigfoot.pos[1], g.fbs, &g.health);
+    drone_damage(g.drs, g.barr, MAX_DRONES, MAX_BULLETS);
+    robot_damage(bigfoot.pos[0], bigfoot.pos[1], g.fbs, &g.health, MAX_FBS);
 }
 
 void drawUmbrella()
