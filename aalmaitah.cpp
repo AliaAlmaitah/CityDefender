@@ -1,80 +1,80 @@
-/*
- *   Filename: aalmaitah.cpp
+/*   Filename: aalmaitah.cpp
  *   Purpose: Software Engineering Project source file.
- *  (c) Copyright Alia Al-Maitah.
+ *   Copyright (c) Alia Al-Maitah.
  *   Author: Alia Al-Maitah
- *   Created: January 1, 2023
- *   Last Modified:
-*/
+ *   Created: October 1, 2023
+ *   Last Modified: Dec 5.2023
+ */
 
+// Header information for the file, including filename, purpose, copyright, author, and modification history
+#include "aalmaitah.h" // Including the custom header file associated with this source file.
+#include <cstdio>      // Including standard I/O header for C, used for input and output operations.
+#include <unistd.h>    // Including POSIX API for various constants and types.
+#include <ctime>       // Including standard library for handling time.
+#include <AL/al.h>     // Including OpenAL headers for audio functionality.
+#include <AL/alc.h>    // Including OpenAL headers for context (device) management.
+#include <AL/alut.h>   // Including OpenAL Utility Toolkit headers.
 
-#include <ctime>
-//#include "aalmaitah.h"
-//#include <cstdio>
-//#include <unistd.h>
-//#include <ctime>
-
-//#ifdef USE_OPENAL_SOUND
-//#include <AL/al.h>
-//#include <AL/alut.h>
-//#endif
+// Structure to hold OpenGL related data.
 struct GLData {
-    bool statistics = false;
+    bool showStatistics = false;  // Boolean variable to control the display of statistics.
 };
 
-GLData gl;
+GLData glData;		          // Instance of GLData structure to maintain OpenGL data.
 
+
+// Function to calculate the time elapsed since the last key press.
 int time_since_key_press(const bool get) {
-    static int lastKeyPressTime = time(NULL); // Initialize immediately
+
+    static int lastKeyPressTime = time(nullptr);  // Static variable to store the last key press time.
 
     if (!get) {
-        // Update the lastKeyPressTime to current time when get is false
-        lastKeyPressTime = time(NULL);
+        lastKeyPressTime = time(nullptr);     // Update last key press time.
         return 0;
     }
 
-    return time(NULL) - lastKeyPressTime;
+    return time(nullptr) - lastKeyPressTime;  // Calculate and return the time elapsed since the last key press.
 }
 
+// Function to update the time of the last key press.
 void updateKeyPressTime() {
-    // Reset the time of the last key press by calling time_since_key_press with get = false
     time_since_key_press(false);
 }
 
+// Callback function to handle keyboard events.
 void keyCallback(unsigned char key, int, int) {
     if (key == 'S' || key == 's') {
-        gl.statistics = !gl.statistics;
+        glData.showStatistics = !glData.showStatistics;
     }
-    // Any key press will reset the timer
+
     updateKeyPressTime();
-}
 
-//sound
-/*
-    #ifdef USE_OPENAL_SOUND
+    // This section was previously under the USE_OPENAL_SOUND directive
     if (key == 'M' || key == 'm') {
-        toggleSound();
+        toggleSound();    // Toggle sound on 'M' key press.
     }
-    #endif
 }
 
-#ifdef USE_OPENAL_SOUND
-static bool soundInitialized = false;
-static ALuint alSource[2];
-static ALuint alBuffer[2];
-static ALuint shootSoundBuffer;
+// OpenAL sound code is now always included in the compilation
+static bool isSoundInitialized = false;  // Flag to check if sound is initialized.
+static ALuint alSource[2];		 // Array to store sound sources.
+static ALuint alBuffer[2];		 // Array to store sound sources.
+static ALuint shootSoundBuffer;		 // Variable to store shooting sound buffer.
+static bool isBackgroundSoundPlaying = false; // Flag to check if background sound is playing.
 
+// Initialize OpenAL for sound processing.
 void initOpenAL() {
-    alutInit(0, NULL);
+    alutInit(nullptr, nullptr);
     if (alGetError() != AL_NO_ERROR) {
-        printf("ERROR: alutInit()\n");
+        printf("ERROR: alutInit() failed\n"); // Check for errors in initialization.
         return;
     }
 
+    // Listener and buffer setup for OpenAL, including position, orientation, and gain.
     // Listener setup
-    float vec[6] = {0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f};
+    float listenerOrientation[] = {0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f};
     alListener3f(AL_POSITION, 0.0f, 0.0f, 0.0f);
-    alListenerfv(AL_ORIENTATION, vec);
+    alListenerfv(AL_ORIENTATION, listenerOrientation);
     alListenerf(AL_GAIN, 1.0f);
 
     // Buffer setup
@@ -83,86 +83,76 @@ void initOpenAL() {
 
     // Source setup
     alGenSources(2, alSource);
-    alSourcei(alSource[0], AL_BUFFER, alBuffer[0]);
-    alSourcei(alSource[1], AL_BUFFER, alBuffer[1]);
+    for (int i = 0; i < 2; ++i) {
+        alSourcei(alSource[i], AL_BUFFER, alBuffer[i]);
+        alSourcef(alSource[i], AL_GAIN, (i == 0 ? 1.0f : 0.5f));
+        alSourcef(alSource[i], AL_PITCH, 1.0f);
+        alSourcei(alSource[i], AL_LOOPING, (i == 0 ? AL_FALSE : AL_TRUE));
+    }
 
-    // Set up source properties
-    alSourcef(alSource[0], AL_GAIN, 1.0f);
-    alSourcef(alSource[0], AL_PITCH, 1.0f);
-    alSourcei(alSource[0], AL_LOOPING, AL_FALSE);
-
-    alSourcef(alSource[1], AL_GAIN, 0.5f);
-    alSourcef(alSource[1], AL_PITCH, 1.0f);
-    alSourcei(alSource[1], AL_LOOPING, AL_TRUE);
-
-    soundInitialized = true;
+    isSoundInitialized = true;
 }
 
+// Function to toggle background sound playing state.
 void toggleSound() {
-    if (!soundInitialized) {
+    if (!isSoundInitialized) {
         initOpenAL();
     }
 
-    static bool soundPlaying = false;
-
-    if (soundPlaying) {
-        // Stop sound
-        alSourceStop(alSource[1]);
+    if (isBackgroundSoundPlaying) {
+        alSourcePause(alSource[1]);
     } else {
-        // Play sound
         alSourcePlay(alSource[1]);
     }
 
-    soundPlaying = !soundPlaying;
+    isBackgroundSoundPlaying = !isBackgroundSoundPlaying; // Update the flag indicating the playing state.
 }
 
-void initshootSound() {
+// Initialize the shooting sound buffer.
+void initShootSound() {
+     // Load shooting sound from file and check for errors.
     shootSoundBuffer = alutCreateBufferFromFile("/home/alia/Documents/CityDefender/Sounds/blaster-2-81267.wav");
+    if (shootSoundBuffer == AL_NONE) {
+        printf("ERROR: Failed to load shoot sound buffer\n");
+    }
 }
 
-void playshootSound() {
-    if (!soundInitialized) {
+// Play the shooting sound effect.
+void playShootSound() {
+    if (!isSoundInitialized) {
         initOpenAL();
-        initshootSound();
+        initShootSound();
     }
 
-    ALuint source;
-    alGenSources(1, &source);
-    alSourcei(source, AL_BUFFER, shootSoundBuffer);
-    alSourcePlay(source);
-}
-#endif // USE_OPENAL_SOUND
+    ALuint shootSource;
+    alGenSources(1, &shootSource);
+    alSourcei(shootSource, AL_BUFFER, shootSoundBuffer);
+    alSourcePlay(shootSource);
 
-#ifdef USE_OPENAL_SOUND
+    if (alGetError() != AL_NO_ERROR) {
+        printf("ERROR: Failed to play shooting sound\n");
+    }
+}
+
+// Clean up and release OpenAL resources when done.
 void cleanupOpenAL() {
-    if (!soundInitialized) {
+    if (!isSoundInitialized) {
         return;
     }
 
-    // Stop playing and delete sources
-    alSourceStopv(2, alSource); // Stop playing all sources
+    alSourceStopv(2, alSource);
     alDeleteSources(2, alSource);
-
-    // Delete buffers
     alDeleteBuffers(2, alBuffer);
 
-    // Get current context
-    ALCcontext *Context = alcGetCurrentContext();
-    if (Context != NULL) {
-        // Get the device used by that context
-        ALCdevice *Device = alcGetContextsDevice(Context);
-        if (Device != NULL) {
-            // Disable context
-            alcMakeContextCurrent(NULL);
-            // Release context
-            alcDestroyContext(Context);
-            // Close the device
-            alcCloseDevice(Device);
+    ALCcontext *context = alcGetCurrentContext();
+    if (context) {
+        ALCdevice *device = alcGetContextsDevice(context);
+        if (device) {
+            alcMakeContextCurrent(nullptr);
+            alcDestroyContext(context);
+            alcCloseDevice(device);
         }
     }
 
-    soundInitialized = false;
+    isSoundInitialized = false;  // Reset the initialization flag.
 }
-#endif // USE_OPENAL_SOUND
-*/
-
