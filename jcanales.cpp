@@ -70,8 +70,10 @@ void display_hp(float health, int xres, int yres)
 {
     const float sep = 2.0;
     const float barWidth = 5.0;
-    if (health > 50.0) {
+    if (health >= 60.0) {
         glColor3f(0.0f, 1.0f, 0.0f);
+    } else if ((health >= 30.0) && (health < 60.0)) {
+        glColor3f(1.0f, 0.5f, 0.0f);
     } else {
         glColor3f(1.0f, 0.0f, 0.0f);
     }
@@ -94,6 +96,7 @@ void display_hp(float health, int xres, int yres)
         ggprint08(&r, 0, 0x00ff00, "HP");
     } else {
         ggprint08(&r, 0, 0x00ff2400, "HP");
+
     }
 }
 int time_since_mouse_moved(const bool get, bool moved)
