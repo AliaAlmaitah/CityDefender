@@ -1098,7 +1098,7 @@ void physics()
                 b->color[2] = 1.0f;
                 g.nbullet++;
 		//Sound
-		playshootSound(); 
+		playShootSound(); 
             }
         }
     }
