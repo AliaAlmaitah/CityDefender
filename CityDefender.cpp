@@ -741,6 +741,27 @@ int checkKeys(XEvent *e)
             //sound on and off
             toggleSound();
             break;
+	case XK_plus:
+            case XK_equal:  // Often the same key as plus, but without shift
+                setVolume(0, 1.0f); // Max volume
+                break;
+
+            // Key for setting half volume
+            case XK_minus:
+                setVolume(0, 0.5f); // Half volume
+                break;
+
+            // Key for changing pitch
+            case XK_p:
+                setPitch(1, 1.2f); // Slightly higher pitch
+                break;
+
+            // Key for toggling looping
+            case XK_l:
+                static bool isLooping = false;
+                enableLooping(1, isLooping);
+                isLooping = !isLooping;
+                break;
 
         case XK_z:
             //Robot testing key -Bryan
@@ -772,9 +793,9 @@ int checkKeys(XEvent *e)
 		case XK_u:
 			g.showUmbrella ^= 1;
 			break;
-		case XK_p:
-			umbrella.shape ^= 1;
-			break;
+		//case XK_p:
+		//	umbrella.shape ^= 1;
+		//	break;
 		case XK_r:
 			g.showRain ^= 1;
 			break;
@@ -794,14 +815,14 @@ int checkKeys(XEvent *e)
 			VecCopy(umbrella.pos, umbrella.lastpos);
 			umbrella.pos[1] -= 10.0;
 			break;
-		case XK_equal:
-			if (++ndrops > 40)
-				ndrops=40;
-			break;
-		case XK_minus:
-			if (--ndrops < 0)
+		//case XK_equal:
+		//	if (++ndrops > 40)
+		//		ndrops=40;
+		//	break;
+		//case XK_minus:
+		//	if (--ndrops < 0)
 				ndrops = 0;
-			break;
+		//	break;
 		case XK_n:
 			break;
 		case XK_w:
@@ -822,6 +843,7 @@ int checkKeys(XEvent *e)
 		//JAYDEN'S TEST MODE
 		case XK_j:
 			g.showBorder = !g.showBorder;
+			default:
 			break;
 	}
 	return 0;
@@ -1434,4 +1456,3 @@ void render()
         Controls(g.xres, g.yres);
     }
 }
-
