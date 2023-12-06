@@ -41,20 +41,6 @@ void updateKeyPressTime() {
     time_since_key_press(false);
 }
 
-// Callback function to handle keyboard events.
-void keyCallback(unsigned char key, int, int) {
-    if (key == 'S' || key == 's') {
-        glData.showStatistics = !glData.showStatistics;
-    }
-
-    updateKeyPressTime();
-
-    // This section was previously under the USE_OPENAL_SOUND directive
-    if (key == 'M' || key == 'm') {
-        toggleSound();    // Toggle sound on 'M' key press.
-    }
-}
-
 // OpenAL sound code is now always included in the compilation
 static bool isSoundInitialized = false;  // Flag to check if sound is initialized.
 static ALuint alSource[2];		 // Array to store sound sources.
@@ -155,4 +141,17 @@ void cleanupOpenAL() {
     }
 
     isSoundInitialized = false;  // Reset the initialization flag.
+}
+// Callback function to handle keyboard events.
+void keyCallback(unsigned char key, int, int) {
+    if (key == 'S' || key == 's') {
+        glData.showStatistics = !glData.showStatistics;
+    }
+
+    updateKeyPressTime();
+
+    // This section was previously under the USE_OPENAL_SOUND directive
+    if (key == 'M' || key == 'm') {
+        toggleSound();    // Toggle sound on 'M' key press.
+    }
 }
