@@ -453,6 +453,12 @@ int main()
             game_instructions(g.xres, g.yres);
         }
         if (start_game == 1) {
+            bool d = true;
+            if (d) {
+                g.showDrone = 1;
+                g.showRobot = 1;
+                d = false;
+            }
             render();
         }
 		x11.swapBuffers();
