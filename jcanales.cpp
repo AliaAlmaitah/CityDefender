@@ -92,11 +92,12 @@ void display_hp(float health, int xres, int yres)
     r.bot = yres-60;
     r.left = xres-125;
     r.center = 0;
-    if (health > 50.0) {
+    if (health >= 60.0) {
         ggprint08(&r, 0, 0x00ff00, "HP");
+    } else if ((health >= 30.0) && (health < 60.0)) {
+        ggprint08(&r, 0, 0xffffa500, "HP");
     } else {
         ggprint08(&r, 0, 0x00ff2400, "HP");
-
     }
 }
 int time_since_mouse_moved(const bool get, bool moved)
