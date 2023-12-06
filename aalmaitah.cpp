@@ -7,33 +7,36 @@
  */
 
 // Header information for the file, including filename, purpose, copyright, author, and modification history
-#include "aalmaitah.h" // Including the custom header file associated with this source file.
-#include <cstdio>      // Including standard I/O header for C, used for input and output operations.
-#include <unistd.h>    // Including POSIX API for various constants and types.
-#include <ctime>       // Including standard library for handling time.
-#include <AL/al.h>     // Including OpenAL headers for audio functionality.
-#include <AL/alc.h>    // Including OpenAL headers for context (device) management.
-#include <AL/alut.h>   // Including OpenAL Utility Toolkit headers.
+#include "aalmaitah.h"
+#include <cstdio>
+#include <unistd.h>
+#include <ctime>
+#include <AL/al.h>
+#include <AL/alc.h>
+#include <AL/alut.h>
+
+// Global variable declarations
+bool isSoundInitialized = false;
+ALuint alSource[2];
+ALuint alBuffer[2];
+ALuint shootSoundBuffer;
+bool isBackgroundSoundPlaying = false;
 
 // Structure to hold OpenGL related data.
 struct GLData {
-    bool showStatistics = false;  // Boolean variable to control the display of statistics.
+    bool showStatistics = false;
 };
 
-GLData glData;		          // Instance of GLData structure to maintain OpenGL data.
-
+GLData glData;
 
 // Function to calculate the time elapsed since the last key press.
 int time_since_key_press(const bool get) {
-
-    static int lastKeyPressTime = time(nullptr);  // Static variable to store the last key press time.
-
+    static int lastKeyPressTime = time(nullptr);
     if (!get) {
-        lastKeyPressTime = time(nullptr);     // Update last key press time.
+        lastKeyPressTime = time(nullptr);
         return 0;
     }
-
-    return time(nullptr) - lastKeyPressTime;  // Calculate and return the time elapsed since the last key press.
+    return time(nullptr) - lastKeyPressTime;
 }
 
 // Function to update the time of the last key press.
@@ -41,12 +44,28 @@ void updateKeyPressTime() {
     time_since_key_press(false);
 }
 
-// OpenAL sound code is now always included in the compilation
-static bool isSoundInitialized = false;  // Flag to check if sound is initialized.
-static ALuint alSource[2];		 // Array to store sound sources.
-static ALuint alBuffer[2];		 // Array to store sound sources.
-static ALuint shootSoundBuffer;		 // Variable to store shooting sound buffer.
-static bool isBackgroundSoundPlaying = false; // Flag to check if background sound is playing.
+// Function to set the volume of a sound source
+void setVolume(ALuint sourceIndex, float volume) {
+    if (sourceIndex < 2 && isSoundInitialized) {
+        alSourcef(alSource[sourceIndex], AL_GAIN, volume);
+    }
+}
+
+// Function to set the pitch of a sound source
+void setPitch(ALuint sourceIndex, float pitch) {
+    if (sourceIndex < 2 && isSoundInitialized) {
+        alSourcef(alSource[sourceIndex], AL_PITCH, pitch);
+    }
+}
+
+// Function to enable or disable looping for a sound source
+void enableLooping(ALuint sourceIndex, bool shouldLoop) {
+    if (sourceIndex < 2 && isSoundInitialized) {
+        alSourcei(alSource[sourceIndex], AL_LOOPING, shouldLoop ? AL_TRUE : AL_FALSE);
+    }
+}
+
+
 
 // Initialize OpenAL for sound processing.
 void initOpenAL() {
@@ -142,7 +161,6 @@ void cleanupOpenAL() {
 
     isSoundInitialized = false;  // Reset the initialization flag.
 }
-// Callback function to handle keyboard events.
 void keyCallback(unsigned char key, int, int) {
     if (key == 'S' || key == 's') {
         glData.showStatistics = !glData.showStatistics;
@@ -154,4 +172,26 @@ void keyCallback(unsigned char key, int, int) {
     if (key == 'M' || key == 'm') {
         toggleSound();    // Toggle sound on 'M' key press.
     }
+
+if (key == '+') {
+        setVolume(0, 1.0f); // max volume
+    }
+
+    // Decrease volume of source 0
+    if (key == '-') {
+        setVolume(0, 0.5f); // half volume
+    }
+
+    // Change pitch of source 1
+    if (key == 'P' || key == 'p') {
+        setPitch(1, 1.2f); // slightly higher pitch
+    }
+
+    // Toggle looping for source 1
+    if (key == 'L' || key == 'l') {
+        static bool isLooping = false;
+        enableLooping(1, isLooping);
+        isLooping = !isLooping;
+    }
 }
+
